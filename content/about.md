@@ -5,9 +5,9 @@ ShowToc: false
 ShowBreadCrumbs: false
 ---
 
-I'm a Solutions Architect at Avanade in Amsterdam, where I design autonomous AI systems and data platforms for organizations like ASML and the International Criminal Court.
+I'm a Solutions Architect based in Amsterdam, designing autonomous AI systems and data platforms for clients in semiconductor manufacturing, international legal operations, and geospatial intelligence.
 
-My current work sits at the intersection of two worlds that rarely talk to each other: **Databricks Lakehouse** for deep offline analysis and GenAI enrichment, and **PostgreSQL** for low-latency, transactional workloads — including agentic AI state management. At ASML, I architected a hybrid "Hot/Cold" memory system that unifies these layers into a single intelligence fabric, with agent tools running directly inside PostgreSQL's transaction boundary.
+My current work sits at the intersection of two worlds that rarely talk to each other: **Databricks Lakehouse** for deep offline analysis and GenAI enrichment, and **PostgreSQL** for low-latency, transactional workloads — including agentic AI state management. For a leading semiconductor equipment manufacturer, I architected a hybrid "Hot/Cold" memory system that unifies these layers into a single intelligence fabric, with agent tools running directly inside PostgreSQL's transaction boundary.
 
 Before that, I built geospatial ML pipelines at Cyclomedia processing terabytes of imagery daily, designed compliance-first RAG platforms for international legal operations, and architected Big Data and blockchain solutions across the Dutch technology sector.
 
