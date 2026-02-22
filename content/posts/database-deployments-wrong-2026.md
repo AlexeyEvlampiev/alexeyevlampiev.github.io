@@ -1,6 +1,6 @@
 ---
 title: "Why We Are Still Getting Database Deployments Wrong in 2026: The Limits of External State Management"
-date: 2026-02-24
+date: 2026-02-22
 draft: false
 tags: ["PostgreSQL", "DevOps", "Database Engineering", "CI/CD"]
 summary: "A technical analysis of why external migration tools structurally fail during complex PostgreSQL deployments, and what the alternative architecture looks like."
