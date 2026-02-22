@@ -1,0 +1,61 @@
+baseURL: https://alexeyevlampiev.github.io/
+languageCode: en-us
+title: Alexey Evlampiev
+theme: PaperMod
+
+pagination:
+  pagerSize: 10
+
+params:
+  author:
+    name: "Alexey Evlampiev"
+  env: production
+  defaultTheme: auto
+  ShowReadingTime: true
+  ShowShareButtons: false
+  ShowPostNavLinks: true
+  ShowBreadCrumbs: true
+  ShowCodeCopyButtons: true
+  ShowToc: true
+  TocOpen: false
+
+  homeInfoParams:
+    Title: "Alexey Evlampiev"
+    Content: >
+      Data Platform Architect. Building PostgreSQL-native tooling.
+      Writing about database internals, deployment architecture, and the systems that hold your data together.
+
+  socialIcons:
+    - name: github
+      url: "https://github.com/AlexeyEvlampiev"
+    - name: linkedin
+      url: "https://linkedin.com/in/"
+
+  cover:
+    hiddenInList: false
+    hiddenInSingle: false
+
+markup:
+  highlight:
+    anchorLineNos: false
+    codeFences: true
+    guessSyntax: true
+    lineNos: false
+    style: monokai
+
+outputs:
+  home:
+    - HTML
+    - RSS
+    - JSON
+
+menu:
+  main:
+    - identifier: posts
+      name: Posts
+      url: /posts/
+      weight: 10
+    - identifier: about
+      name: About
+      url: /about/
+      weight: 20
