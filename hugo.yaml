@@ -35,7 +35,7 @@ params:
     - name: github
       url: "https://github.com/AlexeyEvlampiev"
     - name: linkedin
-      url: "https://linkedin.com/in/"
+      url: "https://www.linkedin.com/in/alexey-evlampiev-09572921/"
 
   cover:
     hiddenInList: false
