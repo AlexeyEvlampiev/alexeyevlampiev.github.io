@@ -20,6 +20,8 @@ For anyone who deploys to PostgreSQL, this changes the rules.
 
 Lakebase is built on [Neon's open-source architecture](https://neon.com/docs/introduction/architecture-overview), which Databricks [acquired for approximately $1 billion](https://www.databricks.com/company/newsroom/press-releases/databricks-agrees-acquire-neon-help-developers-deliver-ai-systems) in May 2025. The core innovation is splitting PostgreSQL into two fully independent layers that communicate through a single interface: the Write-Ahead Log (WAL) stream.
 
+![Lakebase compute-storage separation architecture: stateless PostgreSQL compute streams WAL to a distributed storage layer of safekeepers, pageservers, and S3](lakebase-compute-storage-architecture.png)
+
 **The compute layer** runs standard PostgreSQL — version 16 or 17, with [52 supported extensions](https://docs.databricks.com/aws/en/oltp/projects/compatibility) including pgvector, PostGIS, PL/pgSQL, and pg_stat_statements. From the perspective of a connected client, this is a PostgreSQL database. The wire protocol is standard. psql, pgAdmin, pgx, SQLAlchemy — every PostgreSQL tool works unmodified.
 
 What changes is that this compute process owns no durable state. Instead of flushing WAL to a local filesystem, it streams WAL records over the network to the storage layer.
@@ -41,6 +43,8 @@ Unity Catalog governance — row-level filters, column masking, audit logging, a
 [Moonlink](https://www.databricks.com/blog/mooncake-labs-joins-databricks-accelerate-vision-lakebase), from the Mooncake Labs acquisition (October 2025), provides real-time CDC from Lakebase to Delta and Iceberg tables. Changes in the operational database automatically flow to the analytical layer without ETL pipelines.
 
 Synced Tables provide the reverse direction — Unity Catalog gold-layer tables replicated into Lakebase as read-only PostgreSQL tables, with configurable refresh modes from snapshot to continuous streaming.
+
+![Databricks Lakebase ecosystem integration: Synced Tables replicate gold-layer data into Lakebase, while Moonlink CDC streams changes out to Delta and Iceberg tables, all governed by Unity Catalog](lakebase-ecosystem-integration-flow.png)
 
 ## Scale to Zero and the Death of Assumed State
 

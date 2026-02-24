@@ -8,6 +8,10 @@ pagination:
 
 buildFuture: true
 
+taxonomies:
+  tag: tags
+  series: series
+
 params:
   author:
     name: "Alexey Evlampiev"
@@ -67,7 +71,19 @@ menu:
       name: Posts
       url: /posts/
       weight: 10
+    - identifier: archives
+      name: Archives
+      url: /archives/
+      weight: 15
+    - identifier: tags
+      name: Tags
+      url: /tags/
+      weight: 20
+    - identifier: search
+      name: Search
+      url: /search/
+      weight: 25
     - identifier: about
       name: About
       url: /about/
-      weight: 20
+      weight: 30
