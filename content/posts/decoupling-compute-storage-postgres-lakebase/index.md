@@ -4,6 +4,10 @@ date: 2026-02-26
 draft: false
 tags: ["PostgreSQL", "Databricks", "Serverless", "Database Architecture", "Cloud"]
 summary: "A vendor-neutral analysis of how Databricks Lakebase and the broader serverless PostgreSQL convergence fundamentally change what we can assume about database deployments."
+cover:
+  image: lakebase-ecosystem-integration-flow.png
+  alt: "Databricks Lakebase ecosystem integration: bidirectional data flow between PostgreSQL, Unity Catalog, and Delta Lake"
+  hidden: true
 ShowToc: true
 TocOpen: false
 ---

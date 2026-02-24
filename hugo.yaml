@@ -19,7 +19,7 @@ params:
   env: production
   defaultTheme: auto
   ShowReadingTime: true
-  ShowShareButtons: false
+  ShowShareButtons: true
   ShowPostNavLinks: true
   ShowBreadCrumbs: true
   ShowCodeCopyButtons: true
@@ -38,6 +38,8 @@ params:
       url: "https://github.com/AlexeyEvlampiev"
     - name: linkedin
       url: "https://www.linkedin.com/in/alexey-evlampiev-09572921/"
+    - name: rss
+      url: "/index.xml"
 
   assets:
     favicon: "/favicon.ico"
