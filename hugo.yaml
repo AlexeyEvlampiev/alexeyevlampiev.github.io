@@ -48,8 +48,8 @@ params:
     apple_touch_icon: "/apple-touch-icon.png"
 
   cover:
-    hiddenInList: false
-    hiddenInSingle: false
+    hiddenInList: true
+    hiddenInSingle: true
 
 markup:
   highlight:
