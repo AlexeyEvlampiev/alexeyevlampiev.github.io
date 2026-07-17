@@ -2,7 +2,7 @@
 title: "Why We Are Still Getting Database Deployments Wrong in 2026: The Limits of External State Management"
 date: 2026-02-22
 draft: false
-tags: ["PostgreSQL", "DevOps", "Database Engineering", "CI/CD"]
+tags: ["PostgreSQL", "DevOps", "Database Engineering", "Continuous Delivery"]
 summary: "A technical analysis of why external migration tools structurally fail during complex PostgreSQL deployments, and what the alternative architecture looks like."
 ShowToc: true
 TocOpen: false
@@ -20,7 +20,7 @@ Yet operational database deployments — the single most unforgiving stateful la
 
 The standard deployment pipeline today follows a predictable pattern. A stateless CI/CD runner (GitHub Actions, Azure DevOps, GitLab CI) spins up, downloads a migration CLI, and points it at a PostgreSQL instance. The binary reads `.sql` files or XML/YAML changelogs, applies its own parsing logic, infers transaction boundaries, and fires statements sequentially over the wire.
 
-These tools have earned their adoption. Flyway provides disciplined version tracking with a clean mental model. Liquibase offers comprehensive changelog formats across database engines. Bytebase adds a collaborative GUI with role-based access control and built-in review workflows. For teams moving from manual deployments to structured migration pipelines, any of these tools represents a meaningful improvement. The Liquibase 2024 State of Database DevOps report found that a majority of organizations still deploy database changes manually or semi-manually — for them, the bar to clear is low, and these tools clear it.
+These tools have earned their adoption. Flyway provides disciplined version tracking with a clean mental model. Liquibase offers comprehensive changelog formats across database engines. Bytebase adds a collaborative GUI with role-based access control and built-in review workflows. For teams moving from manual deployments to structured migration pipelines, any of these tools represents a meaningful improvement. [Liquibase's State of Database DevOps research](https://www.liquibase.com/state-of-database-devops) continues to describe database change management as lagging behind application delivery, with manual bottlenecks still central to the problem.
 
 But they all operate under the same fundamental constraint: **the orchestration logic lives outside the database engine.**
 
@@ -52,7 +52,7 @@ The standard recovery procedure:
 4. Edits the migration tool's tracking table to reconcile it with the actual schema.
 5. Re-runs the deployment and hopes the same failure does not recur.
 
-This is not an edge case. Redgate's State of Database DevOps surveys have consistently found that roughly half of respondents have experienced a failed deployment requiring manual database intervention. The number has not meaningfully decreased in three years of measurement.
+This is not a solved coordination problem. In Redgate's [2024 State of the Database Landscape](https://www.red-gate.com/solutions/state-of-database-landscape/2024/database-devops/), 59% of respondents identified aligning application and database development or synchronizing their changes as a challenge. Tooling has improved, but the boundary between an external deployment process and authoritative database state remains difficult.
 
 The root cause is structural, not incidental: **the entity managing the deployment has less information about the database's state than the database itself.**
 
@@ -81,6 +81,8 @@ In this model, the database's own procedural language controls transaction bound
 The pattern has a natural name: a **native execution fabric**. Not a migration framework that manages the database from outside, but an execution environment that operates within the database's own transactional boundaries, using the database's own language, querying the database's own catalogs.
 
 PostgreSQL has supported every capability required for this pattern since version 9.0 — transactional DDL, savepoints, PL/pgSQL, comprehensive system catalogs. The technical foundation has existed for fifteen years. The question is not whether the engine is capable. The question is why we continue to interpose external orchestrators between the deployment pipeline and the one system that has complete, authoritative knowledge of its own state.
+
+The same boundary becomes even more important when PostgreSQL compute is ephemeral. The companion essay, [Decoupling Compute and Storage in Postgres](/posts/decoupling-compute-storage-postgres-lakebase/), follows the argument into Lakebase, Neon, and other serverless PostgreSQL architectures.
 
 As deployment targets grow more ephemeral — serverless instances that scale to zero, compute that separates from storage, databases that serve autonomous workloads requiring strict transactional guarantees — the cost of managing state from outside the engine will only increase. The gap between what the external tool knows and what the database knows will only widen.
 

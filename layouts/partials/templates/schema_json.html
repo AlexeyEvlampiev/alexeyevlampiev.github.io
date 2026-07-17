@@ -1,0 +1,67 @@
+{{- $authorURL := site.Params.schema.authorUrl | default ("about/" | absURL) -}}
+{{- $sameAs := site.Params.schema.sameAs | default (slice) -}}
+{{- if .IsHome }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "@id": {{ printf "%s#person" site.Home.Permalink | jsonify | safeJS }},
+  "name": {{ site.Params.author | default site.Title | jsonify | safeJS }},
+  "url": {{ $authorURL | jsonify | safeJS }},
+  "description": {{ site.Params.description | plainify | truncate 180 | jsonify | safeJS }},
+  "image": {{ site.Params.assets.apple_touch_icon | default "apple-touch-icon.png" | absURL | jsonify | safeJS }},
+  "sameAs": [{{ range $i, $url := $sameAs }}{{ if $i }}, {{ end }}{{ $url | jsonify | safeJS }}{{ end }}]
+}
+</script>
+{{- else if or .IsPage .IsSection }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type":"ListItem","position":1,"name":"Home","item":{{ site.Home.Permalink | jsonify | safeJS }}},
+    {{- if ne .Parent.Permalink site.Home.Permalink }}
+    {"@type":"ListItem","position":2,"name":{{ .Parent.Name | jsonify | safeJS }},"item":{{ .Parent.Permalink | jsonify | safeJS }}},
+    {{- end }}
+    {"@type":"ListItem","position":{{ if ne .Parent.Permalink site.Home.Permalink }}3{{ else }}2{{ end }},"name":{{ .Name | jsonify | safeJS }},"item":{{ .Permalink | jsonify | safeJS }}}
+  ]
+}
+</script>
+{{- if and .IsPage (eq .Section "posts") }}
+{{- $images := partial "templates/_funcs/get-page-images" . -}}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": {{ .Title | plainify | jsonify | safeJS }},
+  "description": {{ with .Description }}{{ . | plainify | jsonify | safeJS }}{{ else }}{{ .Summary | plainify | jsonify | safeJS }}{{ end }},
+  "keywords": [{{ range $i, $tag := .Params.tags }}{{ if $i }}, {{ end }}{{ $tag | jsonify | safeJS }}{{ end }}],
+  "articleBody": {{ .Content | htmlUnescape | plainify | jsonify | safeJS }},
+  "wordCount": {{ .WordCount }},
+  "inLanguage": {{ .Language.Lang | default "en-us" | jsonify | safeJS }},
+  {{- with index $images 0 }}
+  "image": {{ .Permalink | jsonify | safeJS }},
+  {{- end }}
+  "datePublished": {{ .PublishDate.Format "2006-01-02T15:04:05Z07:00" | jsonify | safeJS }},
+  "dateModified": {{ .Lastmod.Format "2006-01-02T15:04:05Z07:00" | jsonify | safeJS }},
+  "author": {
+    "@type": "Person",
+    "@id": {{ printf "%s#person" site.Home.Permalink | jsonify | safeJS }},
+    "name": {{ site.Params.author | default site.Title | jsonify | safeJS }},
+    "url": {{ $authorURL | jsonify | safeJS }},
+    "sameAs": [{{ range $i, $url := $sameAs }}{{ if $i }}, {{ end }}{{ $url | jsonify | safeJS }}{{ end }}]
+  },
+  "mainEntityOfPage": {"@type":"WebPage","@id":{{ .Permalink | jsonify | safeJS }}},
+  "publisher": {"@id":{{ printf "%s#person" site.Home.Permalink | jsonify | safeJS }}}
+}
+</script>
+{{- else if eq .RelPermalink "/about/" }}
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"ProfilePage",
+  "mainEntity":{"@id":{{ printf "%s#person" site.Home.Permalink | jsonify | safeJS }}}
+}
+</script>
+{{- end }}
+{{- end }}

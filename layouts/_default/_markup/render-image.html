@@ -1,0 +1,35 @@
+{{- $u := urls.Parse .Destination -}}
+{{- $src := $u.String -}}
+{{- $image := false -}}
+{{- if not $u.IsAbs -}}
+  {{- $path := strings.TrimPrefix "./" $u.Path -}}
+  {{- with or (.PageInner.Resources.Get $path) (resources.Get $path) -}}
+    {{- $image = . -}}
+    {{- $src = .RelPermalink -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if and $image (in (slice "jpg" "jpeg" "png" "webp") $image.MediaType.SubType) -}}
+  {{- $widths := slice 480 720 1080 1440 -}}
+  {{- $srcset := slice -}}
+  {{- range $width := $widths -}}
+    {{- if ge $image.Width $width -}}
+      {{- $spec := cond hugo.IsExtended (printf "%dx webp q82" $width) (printf "%dx" $width) -}}
+      {{- $variant := $image.Resize $spec -}}
+      {{- $srcset = $srcset | append (printf "%s %dw" $variant.RelPermalink $width) -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $displayWidth := cond (gt $image.Width 1080) 1080 $image.Width -}}
+  {{- $displaySpec := cond hugo.IsExtended (printf "%dx webp q82" $displayWidth) (printf "%dx" $displayWidth) -}}
+  {{- $display := $image.Resize $displaySpec -}}
+  {{- $srcset = $srcset | append (printf "%s %dw" $display.RelPermalink $displayWidth) -}}
+  <img src="{{ $display.RelPermalink }}"
+       srcset="{{ delimit ($srcset | uniq) ", " }}"
+       sizes="(min-width: 868px) 820px, calc(100vw - 48px)"
+       width="{{ $image.Width }}" height="{{ $image.Height }}"
+       alt="{{ .Text }}"{{ with .Title }} title="{{ . | transform.HTMLEscape }}"{{ end }}
+       loading="lazy" decoding="async"
+       {{- range $k, $v := .Attributes }}{{ if and $v (ne $k "src") (ne $k "alt") }} {{ printf "%s=%q" $k $v | safeHTMLAttr }}{{ end }}{{ end }}>
+{{- else -}}
+  <img src="{{ $src }}" alt="{{ .Text }}"{{ with .Title }} title="{{ . | transform.HTMLEscape }}"{{ end }} loading="lazy" decoding="async">
+{{- end -}}
