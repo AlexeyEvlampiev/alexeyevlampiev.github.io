@@ -13,6 +13,11 @@ ShowToc: true
 TocOpen: false
 ---
 
+*Part 1 of a series on data-first architecture. Part 2,
+[Freshness Isn't the Only Axis: APIs, Projections, and Federated Queries](/posts/freshness-isnt-the-only-axis/),
+turns the principle introduced here into an eight-dimension decision
+instrument.*
+
 Somewhere in your organization, a team is building a usage service — metering
 API calls, clicks, deliveries, kilowatt-hours, whatever your business counts.
 To price usage and predict when an account will exhaust its balance, it
@@ -20,13 +25,16 @@ needs facts it does not own: the account's remaining balance, its commercial
 state, and its price plan. Another team owns those facts.
 
 The standard answer is: call their API. And for the first question — *what is
-this account's balance right now?* — the API works. Then the product asks a
-second question: *which accounts will exhaust their balance within a week at
-their current usage trend?* That is a join between a month of usage events
-(yours) and account state (theirs), across every active account. No endpoint
-answers it. So you negotiate a new endpoint, or a bulk export, or you page
-through the API at 2 a.m. and rebuild their dataset on your side — badly,
-without a contract, without anyone admitting that this is what happened.
+this account's balance right now?* — the API works.
+
+Then the product asks a second question: *which accounts will exhaust their
+balance within a week at their current usage trend?* That is a join between
+a month of usage events (yours) and account state (theirs), across every
+active account. No endpoint answers it.
+
+So you negotiate a new endpoint, or a bulk export, or you page through the
+API at 2 a.m. and rebuild their dataset on your side — badly, without a
+contract, without anyone admitting that this is what happened.
 
 Each new question repeats the cycle. The provider's contract defines the
 questions you are allowed to ask; anything unanticipated becomes a
@@ -81,17 +89,21 @@ applications become an ecosystem instead of a call graph. The ingredients
 are old — the lineage section below names their owners — but the reciprocal
 obligation they add up to is worth stating as a principle in its own right.
 
-And the principle needs its boundary attached before any advocacy.
-Holding a projection must be *admissible*: some data may be queried but never
-persisted, derived from, or retained, and that gate is checked per product,
-not assumed. Commands stay owner-mediated: anything that changes
-authoritative state goes through the owner's API, where invariants and locks
-live. And projection should be a first-class candidate for imported
-*knowledge*, not a universal replacement for calls — a narrow, low-volume
-read is often better as a call, and a federated query can serve cross-domain
-reads without a consumer copy. In the architecture reviews I encounter,
-projection is routinely the under-considered candidate; the sequel compares
-it with calls and federation as equals.
+And the principle needs its boundaries attached before any advocacy.
+
+First, holding a projection must be *admissible*: some data may be queried
+but never persisted, derived from, or retained, and that gate is checked per
+product, not assumed.
+
+Second, commands stay owner-mediated: anything that changes authoritative
+state goes through the owner's API, where invariants and locks live.
+
+Within those boundaries, projection should be a first-class candidate for
+imported *knowledge*, not a universal replacement for calls — a narrow,
+low-volume read is often better as a call, and a federated query can serve
+cross-domain reads without a consumer copy. In the architecture reviews I
+encounter, projection is routinely the under-considered candidate; the
+sequel compares it with calls and federation as equals.
 
 ![Role reversal: two services above a shared knowledge substrate. The same dataset — account state — appears as amber operational reality inside the account service and as a green local projection inside the usage service; usage and charge facts mirror the pattern in the opposite direction, each side publishing to and projecting from governed data products.](role-reversal.drawio.svg)
 
@@ -222,14 +234,17 @@ interface change or a producer release.** That is a narrower claim than
 Then the loop closes. The usage service publishes its computed usage and
 charge facts as its own product; inside the account service's boundary they
 arrive as reference knowledge feeding balance dynamics and refill signals.
+
 The two services are *request-path independent, asynchronously coupled, and
-semantically bound by the published contract*. Neither waits on the other to
-serve a request — but the consumer still depends on the producer publishing
-changes, on the delivery pipeline, and on its projection staying within the
-contracted freshness. During a producer outage, local reads continue and
-grow older; that is degraded independence, bounded by the maximum data age
-the decision tolerates, not absolute independence. The bounded form is still
-worth a great deal — and it is the honest form.
+semantically bound by the published contract*.
+
+That does not make the consumer independent of the producer. It still
+depends on the producer publishing changes, on the delivery pipeline, and on
+its projection staying within the contracted freshness. During a producer
+outage, local reads continue and grow older; that is degraded independence,
+bounded by the maximum data age the decision tolerates, not absolute
+independence. The bounded form is still worth a great deal — and it is the
+honest form.
 
 ## Where it does not apply, and what it costs
 
@@ -355,15 +370,17 @@ path is a well-worn pattern. **The ownership and governance** are data
 products, as data mesh formulated them.
 
 What I want to foreground as a single architecture-review obligation is the
-*reciprocity*: that every application
-is simultaneously a publisher of its operational reality and a consumer of
-others', with a governed refinement step in the middle; that "operational"
-and "reference" name the two ends of one recurring swap; and that an
-architecture review should ask for the completeness of that loop the way it
-asks for a threat model. Event-carried state transfer explains the movement,
-CQRS the read model, Helland the temporal semantics, data products the
-ownership. Role reversal treats them as one design obligation — and makes it
-reviewable.
+*reciprocity*: every application is simultaneously a publisher of its
+operational reality and a consumer of others', with a governed refinement
+step in the middle. "Operational" and "reference" name the two ends of one
+recurring swap.
+
+That makes role reversal a review test: an architecture review should ask
+for the completeness of that loop the way it asks for a threat model.
+
+Event-carried state transfer explains the movement, CQRS the read model,
+Helland the temporal semantics, data products the ownership. Role reversal
+treats them as one design obligation — and makes it reviewable.
 
 ## Why this is surfacing now
 
@@ -374,7 +391,9 @@ names the two-way flow as a familiar pain ("flowing data from operational
 data plane to the analytical plane, and back to the operational plane")
 and then recommends the split anyway: "for now, I suggest we keep their
 concerns separate." Implementations followed, tending to stop at lakes,
-models, and dashboards. By
+models, and dashboards.
+
+By
 [January 2025](https://www.nextdata.com/our-pov/the-data-mesh-challenge-how-to-close-the-gap-between-inception-and-operation-at-scale),
 Dehghani was describing data mesh as "a closed loop between operational and
 analytical systems" while conceding that "a very few organizations have been
@@ -389,13 +408,14 @@ makes the publish step concrete: every insert, update, and delete is captured
 from the write-ahead log into append-only, governed tables. Delta tables in
 turn offer their own
 [change data feed](https://docs.delta.io/delta-change-data-feed/) for
-incremental propagation between table versions. These feeds solve a real
-part of publication — row-level change capture without building an external
-CDC stack. What they do not define by themselves is the product contract
-above: semantic ownership, effective-time meaning, entitlement, required
-retention, completeness, correction policy, or the consumer's projection.
-**A feed moves changes; the product contract is what makes those changes
-usable as knowledge.**
+incremental propagation between table versions.
+
+These feeds solve a real part of publication — row-level change capture
+without building an external CDC stack. What they do not define by
+themselves is the product contract above: semantic ownership, effective-time
+meaning, entitlement, required retention, completeness, correction policy,
+or the consumer's projection. **A feed moves changes; the product contract
+is what makes those changes usable as knowledge.**
 
 And a product feature is not a principle. The principle is vendor-neutral
 and older than any of these products: *applications publish their reality;

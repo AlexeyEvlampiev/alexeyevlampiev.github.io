@@ -13,6 +13,11 @@ ShowToc: true
 TocOpen: false
 ---
 
+*Part 2 of a series on data-first architecture. Part 1,
+[Your Operational Data Is Someone Else's Reference Data](/posts/your-operational-data-is-someone-elses-reference-data/),
+introduced role reversal: publish your reality, project theirs, join
+locally. This essay turns that principle into a decision instrument.*
+
 Every architecture review of a data integration reaches the same moment.
 Someone proposes keeping a local copy of another domain's data, and someone
 else says the sentence that ends the discussion: *"But the copy will be
@@ -28,18 +33,17 @@ the calls *now*. Grant the API its usual advantage — it is often fresher,
 fact by fact — and the sentence still covers one component of one dimension
 of the decision.
 
-This essay names the other dimensions. It is the second in a series; the
-[first](/posts/your-operational-data-is-someone-elses-reference-data/) argued
-that operational and reference are roles a dataset plays, not properties, and
-that the publish → refine → project → join-locally loop deserves first-class
-status. This one turns the trade at the center of that loop into an
+This essay names the other dimensions, and turns the trade at the center of
+the first essay's publish → refine → project → join-locally loop into an
 instrument you can put on the table at Monday's review.
 
 ## The question with no per-call answer
 
 Stay in the account-and-plan ecosystem of the first essay, but move the
-decision boundary to payments — a composite example, assembled from patterns most
-platform teams will recognize. A payments team is asked to flag accounts whose spending
+decision boundary to payments.
+
+The example is composite, assembled from patterns most platform teams will
+recognize. A payments team is asked to flag accounts whose spending
 pattern this week diverges from their twelve-month baseline *and* whose
 account standing changed recently *and* whose plan tier makes the divergence
 commercially significant. Three domains: transactions (theirs), account
@@ -47,14 +51,16 @@ standing (another team's), plan catalog (a third team's).
 
 The naïve per-entity composition version of this feature is a distributed
 query engine assembled from meetings: page through accounts, call standing
-for each, call the plan service, join in application code. Each call is
-fresh — and the whole is operationally poor at large fan-out, unrunnable
-during a dependency's incident, and frozen the moment the product manager
-changes "current plan tier" to "**plan tier at the time of each
-transaction**" — or asks whether an account's standing changed twice in the
-preceding ninety days. No current-state endpoint can answer either question,
-however fresh: the answers live in the *history* of another domain's data,
-and the provider's interface never promised history.
+for each, call the plan service, join in application code.
+
+Each call may be fresh. The decision path is still poor: operationally
+fragile at large fan-out, unrunnable during a dependency's incident, and
+frozen the moment the product manager changes "current plan tier" to
+"**plan tier at the time of each transaction**" — or asks whether an
+account's standing changed twice in the preceding ninety days. No
+current-state endpoint can answer either question, however fresh: the
+answers live in the *history* of another domain's data, and the provider's
+interface never promised history.
 
 The projection version is one SQL query over three local tables, two of them
 maintained by governed feeds from the owning domains — feeds that retain
@@ -133,15 +139,19 @@ differences; do not count wins.
 Two of these dimensions are close enough to conflate, so here is the
 contrast directly. **Semantics asks whether a computed answer means the
 right thing. Reasoning capacity asks which answers can be computed at all**
-from the information and contracts available. You have `account_state`, but
-`active` means different things in two domains: semantic failure. You have
-correctly defined current state, but no history: reasoning-capacity
-limitation. You have history but incompatible account identifiers: both —
-the semantic mismatch removes the join from the feasible space. And to head
-off the obvious misreading: **reasoning capacity is not intelligence or
-compute.** It is the expressive capacity of the information and query
-contracts already available to the decision path — a rich owner query API
-can carry substantial reasoning capacity without a single local row.
+from the information and contracts available.
+
+You have `account_state`, but `active` means different things in two
+domains: semantic failure. You have correctly defined current state, but no
+history: reasoning-capacity limitation. You have history but incompatible
+account identifiers: both — the semantic mismatch removes the join from the
+feasible space.
+
+And to head off the obvious misreading: **reasoning capacity is not
+intelligence or compute.** It is the expressive capacity of the information
+and query contracts already available to the decision path — a rich owner
+query API can carry substantial reasoning capacity without a single local
+row.
 
 ## How to use it
 
@@ -218,13 +228,17 @@ recover, selects federation and avoids a dedicated pipeline. It was this
 decision's fan-out, history depth, and deploy-window requirement that
 selected the projection — not a preference for copies.
 
-Two honesty notes on the record. The lifecycle-cost row holds *under these
-assumptions* — an existing feed platform, quarterly changes to the decision
-logic, and high fan-out; make this the only consumer running monthly with no
-platform, and the call column wins that row honestly. And the authority row's "command path" is a
-coordination requirement, not a transport: a synchronous API, a queued
-command, or an owner-mediated step within a saga all qualify, provided the
-owning domain validates and commits against its current invariant.
+Two honesty notes on the record.
+
+**Lifecycle cost.** The row holds *under these assumptions* — an existing
+feed platform, quarterly changes to the decision logic, and high fan-out.
+Make this the only consumer running monthly with no platform, and the call
+column wins that row honestly.
+
+**Authority.** The row's "command path" is a coordination requirement, not a
+transport: a synchronous API, a queued command, or an owner-mediated step
+within a saga all qualify, provided the owning domain validates and commits
+against its current invariant.
 
 Federation deserves one stress-test note beyond its column: its reach is
 bounded by connector coverage and pushdown — under current
@@ -242,7 +256,11 @@ two dimensions that most often change the outcome — first, time; if you want
 only the reusable template, skip ahead to
 [the instrument](#the-instrument-ready-to-copy).
 
-Three different guarantees get conflated in every staleness argument. A transaction over a local projection guarantees that
+Three different guarantees get conflated in every staleness argument: the
+age of each source, the coherence of the combined cut, and whether the
+candidate can prove what was included.
+
+A transaction over a local projection guarantees that
 the query sees *one committed state of the projection*. It does not
 guarantee that every fact in that state describes *the same business
 instant*: if account standing was observed at 10:03 and plan tier at 10:07,
@@ -262,16 +280,21 @@ Each source must be able to say: *"I have delivered everything I originally
 observed up to 10:03."* That promise is a **completeness frontier** — in
 this instrument, a *contractual* claim that the originally observed event
 stream at or before *t* is complete, and no future delivery will extend it.
+
 A correction arriving tomorrow is a new record-time fact about an earlier
 effective state; it does not silently rewrite what the system knew
 yesterday. (The term is borrowed from
 [dataflow systems](https://timelydataflow.github.io/timely-dataflow/chapter_2/chapter_2_4.html),
 where a frontier is a promise about future timestamps — unlike the
 estimated [watermarks](https://beam.apache.org/documentation/basics/) used
-by systems such as Beam.) Two practical warnings: the `max(event_time)` you
-happened to observe is not a frontier, and treating it as one manufactures
-false coherence; and the `min` of several frontiers is meaningful only when
-the sources share a time domain and equivalent completeness semantics.
+by systems such as Beam.)
+
+Two practical warnings:
+
+- `max(event_time)` is an observation, not a completeness frontier —
+  treating it as one manufactures false coherence.
+- The `min` of several frontiers is meaningful only when the sources share
+  a time domain and equivalent completeness semantics.
 
 Three separate properties then fall out: the *common cut* (`min` of
 frontiers) makes a coherent read reconstructable; the *age* of that cut
@@ -296,11 +319,11 @@ coordinated ingestion, they do not establish a coherent cross-source
 coherence too, through snapshot tokens, version-bound reads, or
 provider-side composition. The trade is not "API incoherent, projection
 coherent" — it is whether the chosen design *has an explicit coherence
-mechanism*. Most per-call compositions silently have none. And a change feed
-is not that mechanism by itself: CDC streams and change data feeds can
-supply incremental delivery and source-order or commit metadata — not
-cross-source coherence, decision-required retention, semantic
-compatibility, or admissibility.
+mechanism*. Most per-call compositions silently have none. Nor is a change
+feed that mechanism by itself: it can move updates incrementally and expose
+ordering metadata, but on its own it does not make several sources coherent,
+preserve the history this decision needs, align their meanings, or make the
+data admissible.
 
 ## Reasoning capacity
 
@@ -386,18 +409,15 @@ model is well-trodden — CQRS, Fowler's
 and closest of all Chris Richardson's
 [command-side replica](https://microservices.io/patterns/data/command-side-replica.html),
 which weighs ten named forces including runtime *and* design-time coupling —
-a split this essay's dimensions preserve. And Daniel Abadi's
-[PACELC](https://www.cs.umd.edu/~abadi/papers/abadi-pacelc.pdf) is the
-precedent for the move itself: extending a famous framework to add the
-dimension that operates all the time.
+a split this essay's dimensions preserve.
 
 Reasoning capacity is the dimension I most often find absent.
 [Azure's data guidance](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/data-considerations)
 acknowledges query-shaped materialized views and differing query
-requirements, but — like the review checklists I have checked — stops short
-of naming *the breadth of future questions answerable without upstream
-change* as a comparison dimension in its own right. Nothing above depends on
-being first; it depends on that dimension earning a row in your reviews.
+requirements, but does not name *the breadth of future questions answerable
+without upstream change* as a dimension of its own; I find the same omission
+in many architecture-review checklists. Nothing above depends on being
+first; it depends on that dimension earning a row in your reviews.
 
 **Further reading:** Kleppmann's
 [inside-out architecture](https://martin.kleppmann.com/2015/11/05/database-inside-out-at-oredev.html) ·
@@ -407,7 +427,7 @@ Denning's [locality principle](https://denninginstitute.com/pjd/PUBS/CACMcols/ca
 product position on a few of these dimensions; semantics, authority,
 recovery, and the gate remain yours.
 
-## The landing, and an exercise
+## What to take into the next review
 
 Freshness tells you how recent the evidence is. It does not tell you whether
 the evidence means the right thing, can answer the required question, will
