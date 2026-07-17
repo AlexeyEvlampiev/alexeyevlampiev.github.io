@@ -15,6 +15,8 @@ I hold a **PhD in Mechanical Engineering** from Eindhoven University of Technolo
 
 On the side, I build [pgmi](https://github.com/AlexeyEvlampiev/pgmi) — an open-source PostgreSQL-native execution fabric. It grew out of the conviction that deployment logic belongs inside the database engine, not in external wrappers.
 
+I write in two places: essays on data and systems architecture here, and hands-on PostgreSQL deployment engineering on the [pgmi project blog](https://vvka-141.github.io/pgmi/articles/). The [Writing](/writing/) page indexes all of it in one place.
+
 **Certifications:** Databricks Platform Architect, Databricks Solutions Architect Champion, Databricks Generative AI Engineer, Databricks Data Engineer Professional.
 
 You can find me on [GitHub](https://github.com/AlexeyEvlampiev) and [LinkedIn](https://www.linkedin.com/in/alexey-evlampiev-09572921/).
