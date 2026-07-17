@@ -3,7 +3,7 @@ title: "Freshness Isn't the Only Axis: APIs, Projections, and Federated Queries"
 date: 2026-07-17
 draft: true
 tags: ["Data Architecture", "Software Architecture", "Data Mesh", "Event-Driven Architecture", "Microservices", "API Design"]
-summary: "An API can be fresher and still be the wrong integration. Compare calls, projections, and federated queries across eight decision requirements — from temporal coherence and semantics to authority and recoverability."
+summary: "An API can be fresher and still be the wrong integration. Compare calls, projections, and federated queries across eight dimensions of evaluation — from temporal coherence and semantics to authority and recoverability."
 cover:
   image: social-card.drawio.png
   alt: "Freshness is one requirement: time, semantics, runtime, change coupling, reasoning capacity, authority, consequence & recovery, lifecycle cost — the eight review dimensions of the call-versus-projection-versus-federation decision"
@@ -13,32 +13,24 @@ ShowToc: true
 TocOpen: false
 ---
 
-<!-- STATUS: draft R6 (2026-07-17) — sixth review round applied: reasoning
-     capacity redefined candidate-neutrally (query contracts count; locality
-     no longer part of the definition); bitemporal insertion (effective vs
-     record time, Fowler cite — verified: he uses actual/record history);
-     completeness frontier tightened to the STRONG sealed contract
-     (Timely Dataflow cite verified: "any future time must be greater or
-     equal to some element of the list") + shared-time-domain caveat on min();
-     "cannot reconstruct any cut at all" corrected; candidate archetypes
-     (call / projection / federation / hybrid) defined before the gate;
-     title now carries federation; eight labels STANDARDIZED everywhere
-     (Time, Semantics, Runtime, Change coupling, Reasoning capacity,
-     Authority, Consequence & recovery, Lifecycle cost — card, tables, ADR);
-     worked comparison moved AHEAD of the deep dives; concrete candidate
-     definitions + quantified requirements (5-min age, 60-s skew, 12-month
-     retention); six-step usage recipe; freeze re-characterized (authoritative
-     high-consequence transition, not irreversible); lineage compressed,
-     "Further reading" list, first-mover sentence cut; evaluation simplified
-     to next-ten-ADRs blind classification; diagram framed as the projection
-     case; summary rewritten.
-     PROMO (for the channel kit, NOT the canonical page): social headline
-     — "The API gives us current truth." That is not enough. — then lead
-     with the unit-of-design thesis.
-     MANDATORY before publication: Essay-1-reception revision round.
-     TODO: final date; series taxonomy after AGP-7; LTAP/Lakebase + Trino
-     re-check at publication; essay-1 tease + kit consistency (eight
-     dimensions, federation in title); optional re-verify empirical papers. -->
+<!-- STATUS: draft R7 (2026-07-17) — pair-cohesion round (both essays reviewed
+     together): frontier claim SOFTENED + carefully scoped (seal covers the
+     originally observed stream; corrections = new record-time facts; Timely
+     cite kept, formalism compressed ~40%); neutrality check added after the
+     worked table (API wins the invariant check, federation wins the quarterly
+     investigation — the decision selected the projection, not a preference
+     for copies); novelty claim softened ("dimension I most often find
+     absent"; "nothing above depends on being first"); change-feed limiting
+     sentence added (CDC/CDF = delivery + ordering, not coherence/history/
+     semantics/admissibility); PACELC + evaluation trimmed; terminology
+     standardized: eight DIMENSIONS of evaluation, each holding a
+     decision-specific requirement (summary updated; essay-1 tease matches).
+     PROMO (channel kit): social headline — "The API gives us current truth."
+     That is not enough. — then the unit-of-design thesis.
+     NOTE: if both essays publish together, the R6 "essay-1-reception
+     revision round" gate is superseded by this joint round — user's call.
+     TODO at publication: final date + draft: false; series taxonomy after
+     AGP-7; Trino pushdown re-check; /writing/ index + reciprocal links. -->
 
 Every architecture review of a data integration reaches the same moment.
 Someone proposes keeping a local copy of another domain's data, and someone
@@ -239,8 +231,15 @@ cross-catalog join cannot be pushed into either source, so the engine
 retrieves source-side results and joins them itself. In this example,
 federation earns its place for interactive, occasional, freshness-hungry
 analysis — and loses it for an always-on path that must survive provider
-outages. Under different requirements the columns land differently; that is
-the instrument producing a contextual conclusion rather than a doctrine.
+outages.
+
+And a neutrality check, made by moving the decision: a single-account
+invariant check at authorization time — low fan-out, current state, no
+history — selects the owner's API without a contest. A quarterly analyst
+investigation across three owner catalogs, tolerant of a source being
+briefly unavailable, selects federation and saves the pipeline. It was this
+decision's fan-out, history depth, and deploy-window requirement that
+selected the projection — not a preference for copies.
 
 ## Age is not coherence
 
@@ -262,20 +261,18 @@ decision_cutoff = min(transaction_frontier,
 maximum permitted frontier skew: 60 seconds
 ```
 
-In this instrument, a **completeness frontier** is a *contractual* claim
-with the strong reading: **no future delivery will change what the source
-asserts about event times at or before *t*.** Corrections to that sealed
-range may still arrive — but as new record-time facts, never as silent
-revisions. This matches the frontier's meaning in
-[dataflow systems](https://timelydataflow.github.io/timely-dataflow/chapter_2/chapter_2_4.html)
-— a set of times such that "any future time must be greater or equal to
-some element of the list" — and contrasts with stream processing, where a
-["watermark" is usually a heuristic estimate](https://beam.apache.org/documentation/basics/)
-of completeness. The `max(event_time)` you happened to observe is neither;
-treating it as a frontier manufactures false coherence. One more constraint
-on the four-line rule: the `min` is meaningful only when the sources share a
-time domain and equivalent completeness semantics — the minimum of three
-unrelated timestamps produces numerical alignment, not business coherence.
+In this instrument, a **completeness frontier** is a *contractual* claim:
+the source asserts that its originally observed event stream at or before
+*t* is complete — no future delivery will extend it. Later corrections do
+not break that seal; they arrive as new facts with their own record time,
+never as silent revisions of the sealed range. (The term is borrowed from
+[dataflow systems](https://timelydataflow.github.io/timely-dataflow/chapter_2/chapter_2_4.html),
+where a frontier is a promise about future timestamps — unlike the
+heuristic ["watermarks"](https://beam.apache.org/documentation/basics/) of
+most stream processors.) Two practical warnings: the `max(event_time)` you
+happened to observe is not a frontier, and treating it as one manufactures
+false coherence; and the `min` of several frontiers is meaningful only when
+the sources share a time domain and equivalent completeness semantics.
 
 Three separate properties then fall out: the *common cut* (`min` of
 frontiers) makes a coherent read reconstructable; the *age* of that cut
@@ -300,7 +297,10 @@ coordinated ingestion, they do not establish a coherent cross-source
 coherence too, through snapshot tokens, version-bound reads, or
 provider-side composition. The trade is not "API incoherent, projection
 coherent" — it is whether the chosen design *has an explicit coherence
-mechanism*. Most per-call compositions silently have none.
+mechanism*. Most per-call compositions silently have none. And a change feed
+is not that mechanism by itself: CDC streams and vendor change data feeds
+supply incremental delivery and commit ordering — not cross-source
+coherence, permanent history, semantic compatibility, or admissibility.
 
 ## Reasoning capacity
 
@@ -390,18 +390,17 @@ and closest of all Chris Richardson's
 which weighs ten named forces including runtime *and* design-time coupling —
 a split this essay's dimensions preserve. And Daniel Abadi's
 [PACELC](https://www.cs.umd.edu/~abadi/papers/abadi-pacelc.pdf) is the
-precedent for the whole move: he extended CAP because it "does not constrain
-any system capabilities during normal operation" — a famous framework,
-missing the dimension that operates all the time.
+precedent for the whole move: extending a famous framework because it "does
+not constrain any system capabilities during normal operation" — because it
+was missing the dimension that operates all the time.
 
-What I have not found — there, in
+Reasoning capacity is the dimension I most often find absent.
 [Azure's data guidance](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/data-considerations)
-(which acknowledges query-shaped materialized views and differing query
-requirements, but does not make *the breadth of future questions answerable
-without upstream change* an explicit comparison dimension), or elsewhere I
-have checked — is a compact instrument for comparing calls, projections, and
-federation in which that property is itself named and evaluated per
-candidate.
+acknowledges query-shaped materialized views and differing query
+requirements, but — like the review checklists I have checked — stops short
+of naming *the breadth of future questions answerable without upstream
+change* as a comparison dimension in its own right. Nothing above depends on
+being first; it depends on that dimension earning a row in your reviews.
 
 **Further reading:** Kleppmann's
 [inside-out architecture](https://martin.kleppmann.com/2015/11/05/database-inside-out-at-oredev.html) ·
@@ -415,14 +414,13 @@ you.
 
 ## An operational evaluation, and an exercise
 
-The honest test of this framework is operational, not causal: teams that
-adopt it may also simply be maturing. Still, it can be evaluated. For the
-next ten integration ADRs, record which dimensions were made explicit. When
-a redesign or incident occurs, have someone classify the missing requirement
-*without looking at* the original checklist. The framework is useful if
-omitted dimensions predict the resulting surprise — and incomplete if
-failures repeatedly fall outside it. I have found no verified empirical work
-on this question, which is why it is a prediction, not a finding.
+The honest test of this framework is operational, not causal — adopting
+teams may simply be maturing. Run it anyway: for the next ten integration
+ADRs, record which dimensions were made explicit; when a redesign or
+incident occurs, classify the missing requirement *without looking at* the
+checklist. The framework is useful if omitted dimensions predict the
+surprises, incomplete if failures repeatedly fall outside it. That is a
+prediction, not a finding.
 
 The exercise you can run today is humbler: take your last ten integration
 redesigns and, for each, name the requirement absent from the original
