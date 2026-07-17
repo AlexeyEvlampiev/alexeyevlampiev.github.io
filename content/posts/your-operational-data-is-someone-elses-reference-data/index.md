@@ -1,7 +1,7 @@
 ---
 title: "Your Operational Data Is Someone Else's Reference Data"
 date: 2026-07-17
-draft: true
+draft: false
 tags: ["Data Architecture", "Software Architecture", "Data Mesh", "Event-Driven Architecture", "Microservices", "Data Products"]
 summary: "Data is operational to its owner and reference to everyone else. Governed local projections let services answer new cross-domain questions without synchronous API choreography."
 cover:
@@ -12,23 +12,6 @@ cover:
 ShowToc: true
 TocOpen: false
 ---
-
-<!-- STATUS: draft R5 (2026-07-17) — pair-cohesion round (both essays reviewed
-     together): projection/federation taxonomy ALIGNED with essay 2 (projection
-     = maintained ahead of the decision; federation = retrieved at query time;
-     bytes secondary); SQL now filters days_left <= 7 (matches the motivating
-     question); terminology defense cut to two sentences; admissibility second
-     mention → reminder; vendor chronology replaced with verified CDF passage
-     (Lakebase CDF WAL→append-only governed tables; Delta CDF incremental
-     propagation; "a feed moves changes; the contract makes them knowledge" —
-     both docs fetched + verified this round; LTAP dropped from this essay);
-     measurement compressed to one countable claim + retrospective (essay 2
-     owns evaluation); tease standardized to "eight dimensions of evaluation".
-     Prior R1–R4 verification holds (Fowler ECST, Dehghani quotes, Nextdata;
-     social card + diagram gates DONE).
-     TODO at publication: re-verify Lakebase CDF status; final date +
-     draft: false; series taxonomy after naming gate (AGP-7); /writing/ index
-     entry + reciprocal links. -->
 
 Somewhere in your organization, a team is building a usage service — metering
 API calls, clicks, deliveries, kilowatt-hours, whatever your business counts.
@@ -427,9 +410,10 @@ is yes, integration stops being a call graph and starts being an ecosystem.
 
 *This is the first essay in a series on data-first architecture — how
 applications inherit knowledge, act on local reality, and return what they
-learn. The next one turns the decision at the center of this design into an
-instrument: eight dimensions of evaluation for choosing among API calls,
-projections, and federated queries.*
+learn. The [next one](/posts/freshness-isnt-the-only-axis/) turns the
+decision at the center of this design into an instrument: eight dimensions
+of evaluation for choosing among API calls, projections, and federated
+queries.*
 
 Where has a local projection saved you — and where did its staleness cost
 more than the API dependency it replaced? I am especially interested in the
