@@ -4,6 +4,10 @@ date: 2026-07-17
 draft: true
 tags: ["Data Architecture", "Software Architecture", "Data Mesh", "Event-Driven Architecture", "Microservices", "Data Products"]
 summary: "Data is operational to its owner and reference to everyone else. Governed local projections let services answer new cross-domain questions without synchronous API choreography."
+cover:
+  image: social-card.drawio.png
+  alt: "The same dataset, two roles: account state as amber operational reality in the account service and as a green local projection in the usage service, exchanged through a shared knowledge substrate"
+  hidden: true
 ShowToc: true
 TocOpen: false
 ---
@@ -12,9 +16,10 @@ TocOpen: false
      claims verified against primary sources (Fowler ECST, Dehghani 2020 "and back",
      LTAP "coming soon", Nextdata URL + quotes). TODO before publication:
      - re-verify Lakebase/LTAP feature status at publication date
-     - set og:image/cover for social previews; build simplified 1.91:1 social-card
-       variant of the diagram (larger labels, drop substrate detail line)
-     - set final date; decide series taxonomy AFTER naming gate (AGP-7)
+     - social card DONE 2026-07-17 (social-card.drawio.png 1198x628, cover.hidden,
+       visually verified at thumbnail scale)
+     - set final date + draft: false at publication; decide series taxonomy AFTER
+       naming gate (AGP-7)
      - diagram gate: DONE — role-reversal.drawio(.png), visually verified -->
 
 Somewhere in your organization, a team is building a usage service — metering
@@ -65,8 +70,8 @@ reference knowledge it does not own.
 Here is the observation that carries the rest of this essay: **operational
 and reference are roles, not properties.** The same dataset plays both. A
 balance change is operational reality inside the account service — it happens
-there, under that team's invariants. The moment it is published and lands in
-the usage service's database, it is reference knowledge: trusted, imported
+there, under that team's invariants. The moment it is published and becomes
+available inside the usage service's boundary, it is reference knowledge: trusted, imported
 context for someone else's decisions. Usage events flow the other way: they
 are operational for the usage service, and they become reference for billing,
 forecasting, and the account service's own refill logic.
@@ -145,14 +150,14 @@ ORDER  BY days_left;
 ```
 
 To be precise about what was gained: coordination does not disappear —
-schema, semantics, entitlement, and freshness still require agreement, once,
-at the contract. What disappears is the *per-question* negotiation. Every new
+schema, semantics, entitlement, and freshness still require agreement at the
+contract boundary. What disappears is the *per-question* negotiation. Every new
 question compatible with the published product — segment by plan, correlate
 with device type, backtest a pricing change — is a local query, not another
 endpoint, another meeting, another release.
 
 Then the loop closes. The usage service publishes its computed usage and
-charge facts as its own product. Inside the account service's database they
+charge facts as its own product. Inside the account service's boundary they
 arrive as reference knowledge feeding balance dynamics and refill signals.
 The two services are *runtime-independent but semantically coupled*: neither
 waits on the other to serve a request, while both are bound by the contracts
