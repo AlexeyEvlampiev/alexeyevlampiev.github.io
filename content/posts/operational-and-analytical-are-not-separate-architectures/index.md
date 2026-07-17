@@ -42,14 +42,13 @@ analytical processing are two functions of one closed knowledge cycle.
 
 Most enterprise architecture diagrams describe two worlds.
 
-The operational world contains users, applications, services, APIs, messages,
-workflows, and transactional databases. Its concern is immediate action: accept
-a request, validate it, update state, and produce a response.
-
-The analytical world contains ingestion, historical storage, transformation,
-semantic models, reporting, experimentation, features, and machine learning. Its
-concern is memory and interpretation: preserve what happened, combine it,
-explain it, and learn from it.
+- **The operational world** contains users, applications, services, APIs,
+  messages, workflows, and transactional databases. Its concern is immediate
+  action: accept a request, validate it, update state, and produce a response.
+- **The analytical world** contains ingestion, historical storage,
+  transformation, semantic models, reporting, experimentation, features, and
+  machine learning. Its concern is memory and interpretation: preserve what
+  happened, combine it, explain it, and learn from it.
 
 The split is so familiar that it appears natural. It is not.
 
@@ -95,7 +94,7 @@ does not. Both convert events in the world into governed observations.
 
 Applications are not passive sensors. They also act. They authorize, reserve,
 recommend, price, route, reject, schedule, and commit transactions. This makes
-the application an observation-and-action boundary: it receives current reality,
+the application an *observation-and-action boundary*: it receives current reality,
 combines it with available knowledge, and produces a decision whose outcome
 becomes new reality.
 
@@ -142,10 +141,13 @@ model.
 
 The key property is synthesis across boundaries.
 
-A maintenance application knows work orders and technician findings. A telemetry
-system knows measurements. An asset registry knows configuration. An operations
-system knows load and environment. None owns equipment failure risk. That
-meaning emerges only when their observations are aligned and computed together.
+- A **maintenance application** knows work orders and technician findings.
+- A **telemetry system** knows measurements.
+- An **asset registry** knows configuration.
+- An **operations system** knows load and environment.
+
+None owns equipment failure risk. That meaning emerges only when their
+observations are aligned and computed together.
 
 The shared substrate is therefore not simply a copy of operational systems. Nor
 is it a single enterprise schema. It is a governed environment in which
@@ -242,7 +244,7 @@ remote calls for every decision.
 
 This distinction is more important than latency alone. The loss caused by a thin
 remote interface is not merely a few network milliseconds. It is the loss of a
-jointly computable information space. The consumer can ask only the questions
+*jointly computable information space*. The consumer can ask only the questions
 anticipated by the provider's contract, at the grain and shape the provider
 exposes. When the relevant datasets are available as governed computational
 inputs, the consumer can construct new questions, intermediate representations,
@@ -275,7 +277,7 @@ meaning and publication. The consumer receives a governed representation suitabl
 for its own decisions. A composite product may then combine several domains and
 acquire its own product owner while preserving upstream lineage.
 
-The mechanism can be called role reversal: one application's operational reality
+The mechanism can be called *role reversal*: one application's operational reality
 becomes another application's reference knowledge. It is an important circulation
 pattern, but it is not the complete thesis. The larger point is that applications
 continuously alternate between being observers, contributors, consumers, and
@@ -480,6 +482,48 @@ A design that answers only the behavioral questions describes an application. A
 design that answers only the downstream data questions describes an analytical
 platform. A complete architecture explains the circulation between them.
 
+## Prior work
+
+This argument stands on established foundations, and it is worth naming them
+plainly.
+
+Pat Helland's *Data on the Outside versus Data on the Inside* (2005) drew the
+distinction this article builds on: data inside a service boundary is current and
+transactional, while data that has crossed a boundary is always from the past,
+immutable, and referenced by version. The freshness and coupling limits of
+cross-boundary data are his. What this article adds is treating that crossing as
+a change of role — operational reality becoming another boundary's reference
+knowledge — rather than only a change of freshness.
+
+Martin Kleppmann's "Turning the Database Inside Out" (2015) established the
+mechanism: an append-only log of immutable facts as the source of truth, with
+every store, index, and cache treated as a derived, secondary view. Martin
+Fowler's event-carried state transfer (2017) is the same movement at the level of
+application events — a consumer keeps its own copy so that it need not call the
+source system to act. The local projection described here is that mechanism, made
+an architectural requirement and placed inside a governed, cross-domain
+circulation. The honest claim of novelty is narrow: the mechanism is not new;
+treating local computability as a first-class requirement, weighed against an
+explicit trade space that includes reasoning capacity, is the contribution.
+
+Data mesh (Zhamak Dehghani, 2020) supplied the governance vocabulary this article
+assumes — domain ownership, data as a product, federated governance. Data mesh
+named the two-way flow between operational and analytical planes as a pain and
+then chose to keep their concerns separate; its 2025 reframing describes the
+closed loop retroactively while conceding that few organizations built it. This
+article takes the loop as the starting point: the operational re-entry of
+synthesized knowledge is the part that must be designed, not deferred. The
+well-documented difficulties of data mesh are largely organizational — ownership,
+skills, platform maturity — and this model inherits those risks rather than
+escaping them.
+
+The convergence is also being claimed commercially. Vendors now market lakehouses
+that serve transactions and analytics over one governed copy of data, and
+describe operational-analytical unification as a product category. A product is
+evidence that the direction is real; it is not the architectural principle. The
+principle here is implementation-plural: a circulation among many applications and
+domains, whatever engines and platforms happen to realize it.
+
 ## Conclusion
 
 The operational-analytical split has been useful for organizing engineering
@@ -504,3 +548,12 @@ and action produces the next observation.
 
 > **Final thesis** — The unit of architecture is the circulation, not either
 > side of it.
+
+---
+
+**Sources and further reading**
+
+- Pat Helland, [*Data on the Outside versus Data on the Inside*](https://www.cidrdb.org/cidr2005/papers/P12.pdf) — CIDR 2005.
+- Martin Kleppmann, [*Turning the Database Inside Out*](https://martin.kleppmann.com/2015/03/04/turning-the-database-inside-out.html) — 2015.
+- Martin Fowler, [*What do you mean by "Event-Driven"?*](https://martinfowler.com/articles/201701-event-driven.html) (event-carried state transfer) — 2017.
+- Zhamak Dehghani, [*Data Mesh Principles and Logical Architecture*](https://martinfowler.com/articles/data-mesh-principles.html) — 2020, and [*The data mesh challenge: closing the gap between strategy and operation at scale*](https://www.nextdata.com/our-pov/the-data-mesh-challenge-how-to-close-the-gap-between-inception-and-operation-at-scale) — 2025.
