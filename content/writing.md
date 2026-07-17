@@ -16,8 +16,7 @@ project sites and is indexed here so nothing gets lost between platforms.
 Analysis and essays on data architecture, PostgreSQL, and deployment
 engineering — browse the [archives](/archives/) for the full list.
 
-- [Your Operational Data Is Someone Else's Reference Data](/posts/your-operational-data-is-someone-elses-reference-data/) — July 2026. Operational and reference are roles, not properties: how governed local projections turn integration from a call graph into an ecosystem.
-- [Freshness Isn't the Only Axis: APIs, Projections, and Federated Queries](/posts/freshness-isnt-the-only-axis/) — July 2026. A gated, eight-dimension instrument for choosing between calls, projections, and federated queries — decision by decision.
+- [Operational and Analytical Are Not Separate Architectures](/posts/operational-and-analytical-are-not-separate-architectures/) — July 2026. The operational/analytical split organizes teams but misdescribes the system: applications observe and act, a shared substrate remembers and synthesizes, and knowledge returns to change the next decision. The complete unit of architecture is the information ecosystem.
 - [Decoupling Compute and Storage in Postgres: The Architectural Implications of Databricks Lakebase](/posts/decoupling-compute-storage-postgres-lakebase/) — February 2026
 - [Why We Are Still Getting Database Deployments Wrong in 2026: The Limits of External State Management](/posts/database-deployments-wrong-2026/) — February 2026
 
