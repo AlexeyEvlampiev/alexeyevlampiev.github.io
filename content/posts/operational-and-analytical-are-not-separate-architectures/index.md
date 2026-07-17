@@ -1,7 +1,7 @@
 ---
 title: "Operational and Analytical Are Not Separate Architectures"
 date: 2026-07-17
-draft: true
+draft: false
 tags: ["Data Architecture", "Software Architecture", "Lakehouse", "Data Mesh", "Machine Learning", "Data Products"]
 summary: "Operational and analytical are not two architectures. They are the action and learning functions of one information ecosystem: applications observe and act, a shared substrate remembers and synthesizes, and knowledge returns to change the next decision."
 cover:
