@@ -1,29 +1,35 @@
 ---
-title: "Freshness Isn't the Only Axis"
+title: "Freshness Isn't the Only Axis: Choosing Between APIs and Local Projections"
 date: 2026-07-17
 draft: true
 tags: ["Data Architecture", "Software Architecture", "Data Mesh", "Event-Driven Architecture", "Microservices", "API Design"]
-summary: "Staleness is one part of the API-versus-projection decision. A permission gate and six axes — temporal fidelity, coupling, reasoning capacity, authority, reversibility, economics — turn the argument into an instrument."
+summary: "Choosing between an API, a local projection, or a federated query takes more than freshness. A permission gate and six explicit forces make the trade-off reviewable."
 cover:
   image: social-card.drawio.png
-  alt: "Freshness is one requirement: time, coupling, reasoning, authority, reversibility, economics — the six axes of the API-versus-projection decision"
+  alt: "Freshness is one requirement: time, runtime and change coupling, question space, authority, recoverability, lifecycle cost — the six axes of the API-versus-projection decision"
   relative: true
   hidden: true
 ShowToc: true
 TocOpen: false
 ---
 
-<!-- STATUS: draft R2 (2026-07-17) — second-opinion review applied in full:
-     temporal fidelity replaces freshness; gate-zero permission added;
-     reasoning capacity operationalized; reversibility added to reconciliation;
-     owner-mediated-path phrasing; API side de-straw-manned; prior-art halved
-     and moved after walkthrough; why-now compressed; LLM analogy REMOVED and
-     relocated to Essay 3 (AGP-5); review template added; hypothesis made
-     measurable; diagram wording fixed; six-axis social card created.
-     MANDATORY before publication: revision round folding in Essay 1's launch
-     reception. TODO: final date, series taxonomy after AGP-7 naming gate,
-     LTAP/Lakebase + Trino pushdown re-check at publication (version-sensitive).
-     Optional: re-verify empirical papers 2302.01894/1908.04101 (hedged now). -->
+<!-- STATUS: draft R3 (2026-07-17) — third review round applied in full:
+     snapshot/coherence/as_of distinction corrected (watermark rule added);
+     permission gate applied per-option with graded outcomes; coupling
+     expanded to runtime+change; reversibility split from projection
+     reconciliation ("decision consequence & recoverability"); reasoning
+     capacity made orthogonal (budgets moved to their rows); walkthrough
+     reformatted as table + result sentence; economics tempered with stated
+     assumptions; federation wording precise (per-source query interface,
+     cross-catalog pushdown, reproducibility-without-captured-cut, engine
+     added to dependency set); lineage merged into one section; hypothesis
+     operationalized vs team's historical rate; title extended for standalone
+     clarity; social-card labels precise; diagram center reinforces
+     reasoning capacity. LinkedIn alt headline for channel kit: "Your API is
+     fresh. Your decision may still be incoherent."
+     MANDATORY before publication: Essay-1-reception revision round.
+     TODO: final date; series taxonomy after AGP-7; LTAP/Lakebase + Trino
+     pushdown re-check at publication; optional re-verify empirical papers. -->
 
 Every architecture review of a data integration reaches the same moment.
 Someone proposes keeping a local copy of another domain's data, and someone
@@ -35,10 +41,10 @@ that the owner's read path is itself current — when it may serve from a read
 replica, a cache, an asynchronously updated index, or a materialized view of
 its own. Second, that facts returned by several owners describe a coherent
 moment — when three sequential calls can each be individually fresh while
-describing three incompatible instants. A five-minute-old projection can be
-internally snapshot-consistent; the "fresh" composition never was. Grant the
-API its usual advantage — it is often fresher — and the sentence is still
-only one component of one dimension of the decision.
+describing three incompatible instants. Neither follows merely from making
+the calls *now*. Grant the API its usual advantage — it is often fresher,
+fact by fact — and the sentence still covers one component of one dimension
+of the decision.
 
 This essay names the other dimensions. It is the second in a series; the
 [first](/posts/your-operational-data-is-someone-elses-reference-data/) argued
@@ -72,150 +78,175 @@ buys latency at the price of the very staleness the API was chosen to avoid.
 
 The projection version is one SQL query over three local tables, two of them
 maintained by governed feeds from the owning domains. Its facts are minutes
-old, and internally coherent. Nobody at the review said out loud that the
-choice was between *fresh-per-call-but-narrow* and *minutes-old-but-able to
-answer the unanticipated questions the projected schema and history permit*.
-Freshness got a sentence; the rest of the decision got none.
+old. Nobody at the review said out loud that the choice was between
+*fresh-per-call-but-narrow* and *minutes-old-but-able to answer the
+unanticipated questions the projected schema and history permit*. Freshness
+got a sentence; the rest of the decision got none.
 
 ## Gate zero, then six axes
 
-Before any trade-off, one question is a gate, not an axis: **may this
-consumer receive or query this data at all** — at the required granularity,
-for this purpose? Residency, purpose limitation, tenant isolation, retention
-and erasure, sensitive attributes. If the answer is no, neither reasoning
-capacity nor economics can make the projection admissible. If the answer is
-"yes, with row-level entitlement," that entitlement becomes a clause in the
-product contract — the first essay's example contract carried exactly such a
-clause.
+Before any trade-off, one question is a gate, not an axis — and it must be
+asked **separately for each candidate design**, because "query," "persist,"
+"derive," and "retain" are materially different permissions. A policy may
+permit an API call while prohibiting a durable copy; it may allow a
+projection with a seven-day retention limit while prohibiting historical
+reconstruction; it may allow holding a raw fact but not the derived risk
+classification.
+
+> **Gate zero — admissibility.** For this option: may the consumer query,
+> persist, derive from, and retain the required data, at the proposed
+> granularity, for the stated purpose? Consider residency, purpose
+> limitation, tenant isolation, retention and erasure, and sensitive
+> attributes.
+
+The outcome is not merely yes or no. A design can be *inadmissible*;
+*admissible with constraints* (retention limits, minimized columns,
+row-level entitlement written into the product contract — the first essay's
+example contract carried exactly such a clause); *admissible only through an
+owner-mediated or federated read*; or *admissible as a derived, minimized
+product* rather than the raw data.
 
 Past the gate, six axes. For each integration, ask six questions and record
 six answers:
 
 | Axis | The question to ask out loud | What to record |
 |---|---|---|
-| **Temporal fidelity** | How old may each fact be — and must facts from different domains describe a coherent snapshot or causal order? | Max age / lag SLO, `as_of` visibility, cross-source coherence requirement |
-| **Coupling** | Must the consumer keep working when the producer or the network is degraded? | Availability target during provider failure; a failure-mode test |
-| **Reasoning capacity** | Which questions are feasible without an upstream contract change — within what latency, cost, and availability budgets? | Locally joinable dimensions, history depth, fan-out budget, time-to-answer for a new question |
-| **Authority** | Who validates and commits the decision against the current invariant? | The invariant's owner and the owner-mediated command path |
-| **Reversibility & reconciliation** | If stale or incoherent knowledge produces a wrong decision, how cheaply is it corrected — and what detects the conflict? | Correction mechanism: revalidation, compensation, human review |
-| **Economics** | What is the total lifecycle cost, both designs counted honestly? | Calls, egress, storage, pipelines, on-call |
-
-Note that the first row is *temporal fidelity*, not freshness. The first
-essay called this requirement freshness, and freshness — maximum observation
-age — is its headline component. But the full requirement also covers update
-lag, whether `as_of` times are visible to the decision, and whether facts
-drawn from several domains must describe one coherent moment or respect a
-causal order. A projection with an explicit `as_of` can satisfy a coherence
-requirement that a fan of individually fresh calls silently violates.
+| **Temporal fidelity** | What maximum age, lag, and cross-source skew are acceptable? Is a coherent snapshot or causal order required — and how is it *produced*? | Max age / lag SLO, `as_of` visibility, coherence mechanism (watermark, skew bound, snapshot token) |
+| **Runtime & change coupling** | What must be available at decision time — and which schema or semantic changes upstream require coordinated work? | Availability target during provider failure; teams and contracts affected by a breaking change |
+| **Reasoning capacity** | Which questions and derivations are supported by the data, history, and contracts already available — without an upstream contract change? | Locally joinable dimensions, history depth, past-state reconstruction, lead time to a new production answer |
+| **Authority** | Who validates and commits the authoritative state transition? | The invariant's owner and the owner-mediated command path |
+| **Decision consequence & recoverability** | If stale, incomplete, or incoherent knowledge produces a wrong decision, what does it cost, what detects it, and what corrects it? | Revalidate-before-acting, compensation, human review, or irreversible external effect |
+| **Economics & operability** | What is the total lifecycle cost of each design, honestly counted? | Calls, egress, storage, pipelines, replay and divergence repair, observability, on-call |
 
 And one instruction for using the table: **the axes are not votes.** Do not
-count which option wins the most rows. Permission and authority can veto a
-design outright; temporal fidelity, coupling, reasoning capacity, and
-economics optimize among the designs that remain feasible. The table is a
-set of questions that must be answered on the record — not a scorecard.
+count which option wins the most rows. Admissibility and authority can veto
+a design outright; the other rows optimize among the designs that remain
+feasible. The table is a set of questions that must be answered on the
+record — not a scorecard.
 
-Several axes have distinguished ancestry, and they are inherited here, not
-discovered. Pat Helland fixed the temporal endpoints in
-[2005](https://www.cidrdb.org/cidr2005/papers/P12.pdf): data crossing a
-service boundary "is always from the past," and participating in another
-system's transaction means holding its locks — "a serious ceding of
-independence." Daniel Abadi's
-[PACELC](https://www.cs.umd.edu/~abadi/papers/abadi-pacelc.pdf) made the
-replication half formal in 2012: "as soon as a DDBS replicates data, a
-tradeoff between consistency and latency arises" — present at all times.
-[Azure's integration guidance](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/data-considerations)
-names the authority axis outright: one service is "the source of truth for a
-given entity"; others hold eventually consistent copies.
+## Temporal fidelity: age is not coherence
 
-What none of that lineage carries as a *decision axis* is the third row —
-and it is the one that decided the payments example.
+The first row deserves its own paragraph, because it hides the subtlest
+distinction in the whole decision — and the first essay's shorthand,
+"freshness," covered only part of it.
 
-## Reasoning capacity, operationally
+Three different guarantees get conflated in every staleness argument. A
+transaction over a local projection guarantees that the query sees *one
+committed state of the projection*. It does not guarantee that every fact in
+that state describes *the same business instant*: if account standing was
+observed at 10:03 and plan tier at 10:07, querying both in one local
+transaction does not make them temporally coherent. An `as_of` column makes
+the mismatch *visible*; it does not eliminate it. Coherence requires an
+additional, explicit rule — a common source watermark, a bounded maximum
+skew, a shared snapshot token, or causal metadata. For the payments case,
+the rule fits in four lines:
 
-**Reasoning capacity is the set of questions and decisions a consumer can
-compute, using contracts already available to it, within stated latency,
-cost, availability, and coordination budgets.**
+```text
+decision_cutoff = min(transaction_watermark,
+                      standing_watermark,
+                      plan_watermark)
+maximum permitted source skew: 60 seconds
+```
 
-Not "able to compute" in the theoretical sense — with enough calls, retries,
-and meetings, remote APIs can be composed into almost any computation.
-Feasibility within budgets is the point, and it is measurable: how many
-dimensions are locally joinable; whether history is deep enough to recompute
-and backtest; what fan-out the latency and cost envelope tolerates; and,
-above all, the lead time from a new question to a production answer — and
-whether that path crosses another team's roadmap.
+If the projections retain history, the query can select each source *as of*
+the common cutoff. If they hold only current-state upserts, no coherent
+earlier cut can be reconstructed — a direct link between this row and the
+reasoning-capacity row: history is what turns visibility into coherence.
 
-The contrast with the API is then precise: **a call can make a question
-logically expressible yet operationally infeasible; a projection expands the
-set of questions that are feasible without changing any upstream contract.**
-When the relevant projections are local, the application can join months of
-its own events with other domains' published state and answer next week's
-question the same afternoon. When they are not, its feasible-question set
-collapses to what some provider anticipated when the contract was written —
-plus whatever can be assembled within the budgets, which is usually far less
-than what is expressible.
+The same honesty cuts the other way: APIs can support coherence too, through
+snapshot tokens, version-bound reads, or provider-side composition. The
+trade is not "API incoherent, projection coherent." It is whether the chosen
+design *has an explicit coherence mechanism* — most per-call compositions
+silently have none.
 
-![The local intersection: reference knowledge (green, left — other domains' published state, shared facts, classifications, aggregates, policies) and operational reality (amber, right — transactions, events, measurements, workflow state) both flow into a central box, the local intersection, where joins, aggregation, inference, screening, optimization and prediction happen — where cross-domain decisions become locally computable, inside one computational boundary.](local-intersection.drawio.png)
+## Reasoning capacity
+
+**Reasoning capacity is the set of questions and derivations supported by
+the data, history, and contracts already available to the consumer — without
+an upstream contract change.**
+
+Latency, availability, and cost all constrain what is practical — but those
+constraints live in their own rows. This axis measures the question space
+itself, and it is measurable: how many dimensions are locally joinable;
+how deep the history is, and whether past state can be reconstructed;
+whether hypothetical scenarios can be evaluated against it; how many
+upstream contract changes a new question requires; and the lead time from a
+new question to a first production answer.
+
+The contrast with the per-call design is then precise: **a call can make a
+question logically expressible while the composition needed to answer it is
+operationally out of reach; a projection expands the set of questions
+answerable without renegotiating any upstream contract.** When the relevant
+projections are local, the application can join months of its own events
+with other domains' published state and answer next week's question the same
+afternoon. When they are not, the feasible-question set collapses to what
+some provider anticipated when the contract was written.
+
+![The local intersection: reference knowledge (green, left — other domains' published state, shared facts, classifications, aggregates, policies) and operational reality (amber, right — transactions, events, measurements, workflow state) both flow into a central box — the local intersection, the consumer's reasoning capacity — where joins, aggregation, inference, screening, optimization and prediction happen, inside one computational boundary.](local-intersection.drawio.png)
 
 ## Walking the table
 
-Run the payments example through the gate and the six axes:
+Run the payments example through the gate and the six axes — in the shape
+the review record should take:
 
-**Permission:** the payments team may hold account standing at
-account-level granularity for fraud-adjacent purposes — with row-level
-tenant entitlement written into the feed's contract. Gate passed, on the
-record. **Temporal fidelity:** the divergence analysis tolerates minutes-old
-standing data — the baseline itself is twelve months deep — and the
-projection's `as_of` column makes the observation time visible to the
-decision. **Coupling:** the flagging job must run during the standing
-service's deploy window; the projection answers from the last accepted
-state. **Reasoning capacity:** the query joins three domains and will be
-reshaped every quarter; lead time for a new question must not include
-another team's sprint. **Authority:** flagging an account for review
-commits nothing against anyone's invariant — but the *follow-up* action,
-freezing the account, goes through the owner-mediated command path, full
-stop. **Reversibility:** this is the row that quietly decides the design. A
-flag is cheap to revoke: a human review detects and corrects it. Freezing
-or debiting on the same minutes-old data would be a materially different
-answer in this row — the same temporal fidelity can be acceptable for the
-reversible decision and unacceptable for the irreversible one.
-**Economics:** two governed feeds versus a bespoke fan-out client and its
-rate-limit negotiations; the feeds win before the first incident is counted.
+| Row | Evidence | Effect on the decision |
+|---|---|---|
+| Admissibility | Standing may be retained at account granularity for fraud-adjacent review, tenant-isolated, per the feed contract | Projection feasible, with constraints on the record |
+| Temporal fidelity | Minutes-old acceptable (baseline is twelve months deep); common watermark + 60s skew bound adopted | Projection feasible — coherence mechanism named |
+| Runtime coupling | Screening must run during the standing service's deploy window | Favors projection |
+| Change coupling | Standing schema versioned, additive changes, 90-day overlap on breaking ones | Projection risk manageable — and on the record |
+| Reasoning capacity | Query reshaped quarterly; needs 12 months of history and three-domain joins | Strongly favors projection |
+| Authority | Flagging commits nothing against anyone's invariant | Projection permitted for the *read* |
+| Consequence & recoverability | A flag is reviewable and reversible — human review detects and corrects; freezing or debiting would be irreversible | Projection for flagging; owner-mediated command path for freezing |
+| Economics & operability | Existing governed-feed platform; recurring high-fan-out query; quarterly reshaping | Favors projection *under these assumptions* |
 
-One gate, six rows, one paragraph — and the decision explains itself to the
-next reviewer.
+Then say the result out loud, because it demonstrates why the rows are not
+votes: **reasoning capacity selected the read design; decision consequence
+selected the action boundary.** The same minutes-old data is acceptable for
+the reversible decision and would be unacceptable for the irreversible one.
 
-The same instrument works in reverse. Reserve inventory? Authority requires
-the owner-mediated command path — whether that is a synchronous API, a
-command queue, or a saga is transport detail; the requirement is that the
-owning domain validates and commits against its current invariant, and no
-amount of reasoning-capacity enthusiasm overrides it. Display a customer's
-current balance? Temporal fidelity dominates, and the answer is an
-owner-governed current read path — which might be the owner's API, or might
-be a projection with guarantees strong enough to be designated exactly that.
-The table is not a projection advocacy device; it is what keeps every side
-honest.
+The economics row deserves its assumptions stated, because they can flip it:
+given an existing feed platform, quarterly query changes, and high fan-out,
+the projection has the lower expected lifecycle cost — before provider
+incidents are priced in. Make this the *only* consumer, run the query
+monthly, remove the platform, or hand the provider an efficient bulk
+endpoint, and the call side can win the row honestly.
+
+The instrument also works in reverse. Reserve inventory? Authority requires
+the owner-mediated command path — synchronous API, command queue, or saga is
+transport detail; the requirement is that the owning domain validates and
+commits against its current invariant. Display a customer's balance?
+Temporal fidelity dominates, and the answer is an owner-governed current
+read path — which might be the owner's API, or a projection with guarantees
+strong enough to be designated exactly that. The table is not a projection
+advocacy device; it is what keeps every side honest.
 
 ## The third option, on the same axes
 
 Federated query engines — Trino, Starburst, the data-virtualization family —
-promise the tempting middle: cross-domain joins with no local copies. The
-promise is real, and the instrument prices it like everything else.
+promise the tempting middle: cross-domain joins with no persistent local
+copies. The instrument prices the promise like everything else.
 
-**Temporal fidelity:** each fact is read live — but coherence across sources
-is exactly what federation does not universally guarantee; two connectors
-are observed at two moments. **Coupling:** inverts — the decision now
-requires every source system *and* the engine healthy at query time, the
-projection's failure profile turned inside out. **Reasoning capacity:**
-broad, bounded by connector coverage and pushdown:
-[join pushdown requires the joined tables to share a catalog](https://trino.io/docs/current/optimizer/pushdown.html),
-so the genuinely cross-domain join executes by pulling data into the engine
-at query time. **Authority:** unchanged — federation reads; it commits
-nothing. **Reversibility:** results can differ between runs, so decisions
-taken on federated reads need the same correction story as projections.
-**Economics:** per-query and conditional — "often" a cost reduction, say the
-vendors' own docs, choosing the adverb carefully. **And the gate:** policy
-and identity must translate across every federated source, which is its own
-project.
+**Temporal fidelity:** each fact is retrieved from the source's current
+query interface at execution time — which is not the same as authoritative
+live state (sources themselves serve replicas, caches, snapshots), and
+coherence across sources is exactly what federation does not universally
+provide. **Runtime coupling:** the decision path is coupled to every queried
+source *and* to the federation engine itself — the dependency set grows.
+**Change coupling:** every source schema is now part of the consumer's query
+surface. **Reasoning capacity:** broad, bounded by connector coverage and
+pushdown — under current
+[Trino rules](https://trino.io/docs/current/optimizer/pushdown.html), a
+cross-catalog join cannot be pushed into either source, so the engine
+retrieves source-side results and joins them itself. **Authority:**
+unchanged — federation reads; it commits nothing. **Consequence &
+recoverability:** without source snapshot identifiers, watermarks, or
+retained query inputs, the same federated query may not be reproducible
+later — decisions taken on it need a correction story just as projections
+do. **Economics:** per-query and conditional — "often" a cost reduction, say
+the vendors' own docs, choosing the adverb carefully. **And the gate:**
+policy and identity must translate across every federated source, which is
+its own project.
 
 Run it through the table and federation earns its place for interactive,
 occasional, freshness-hungry analysis — and loses it for the always-on
@@ -224,19 +255,28 @@ pick sides; it prices them.
 
 ## Whose shoulders, briefly
 
-None of the mechanisms here are new. CQRS maintains query-shaped read
-models; Fowler's
+None of the mechanisms here are new, and several axes are inherited with
+their citations. Pat Helland fixed the temporal endpoints in
+[2005](https://www.cidrdb.org/cidr2005/papers/P12.pdf): data crossing a
+service boundary "is always from the past," and joining another system's
+transaction is "a serious ceding of independence." Daniel Abadi's
+[PACELC](https://www.cs.umd.edu/~abadi/papers/abadi-pacelc.pdf) made the
+replication half formal: "as soon as a DDBS replicates data, a tradeoff
+between consistency and latency arises" — present at all times.
+[Azure's guidance](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/data-considerations)
+names the authority axis outright — one service is "the source of truth for
+a given entity" — and gestures at query capability as a benefit. CQRS
+maintains query-shaped read models; Fowler's
 [event-carried state transfer](https://martinfowler.com/articles/201701-event-driven.html)
 moves state so recipients need not call the source; Kleppmann's inside-out
 architecture supplies the log-and-derived-views machinery; the
 [unbundled-database literature](https://www.confluent.io/blog/leveraging-power-database-unbundled/)
-placed materialized views inside consuming services in 2017; and Peter
-Denning's [locality principle](https://denninginstitute.com/pjd/PUBS/CACMcols/cacmJul05.pdf)
-is the deepest root of bring-data-close-to-the-process. Pattern guidance
-distributes the decision across benefit lists and force lists — Chris
-Richardson's
+placed materialized views inside consumers in 2017; Denning's
+[locality principle](https://denninginstitute.com/pjd/PUBS/CACMcols/cacmJul05.pdf)
+is the deepest root of bring-data-close. Closest of all, Chris Richardson's
 [command-side replica](https://microservices.io/patterns/data/command-side-replica.html)
-comes particularly close, weighing ten named forces.
+weighs ten named forces — including, notably, both runtime *and* design-time
+coupling.
 
 What I have not found is a compact instrument for comparing calls,
 projections, and federation in which *the set of questions feasible without
@@ -256,28 +296,30 @@ its [LTAP announcement](https://www.databricks.com/company/newsroom/press-releas
 promises transactions and analytics on a single copy of storage — coming
 soon. Every vendor pitch is implicitly a position on these axes: sync
 latency is a temporal-fidelity row, single-copy claims target economics —
-and no platform answers authority, reversibility, or the permission gate for
-you. The axes are how you evaluate the slide.
+and no platform answers authority, recoverability, or the admissibility gate
+for you. The axes are how you evaluate the slide.
 
 ## One hypothesis, one exercise
 
-The falsifiable version of this essay: **within twelve months of approval,
-the proportion of integrations requiring material redesign — because the
-original review omitted a requirement that maps to one of these axes — will
-be lower for teams that put the gate and six axes on the record than for
-teams whose reviews argued freshness alone.** Normalize by reviewed
-integration, and note which axis the original review failed to discuss; my
-prediction is that the missing axis predicts the failure class.
+The falsifiable version of this essay: **for integrations reviewed with this
+template, the twelve-month rate of material redesign caused by an omitted
+requirement should be lower than the team's historical rate for comparable
+integrations.** "Material redesign" means the integration needed a new:
+integration mode, persisted copy (or removal of one), upstream contract,
+authority path, consistency mechanism, or privacy/retention model. Normalize
+per reviewed integration, and note which axis the original review failed to
+discuss; my prediction is that the missing axis predicts the failure class.
 
 To be explicit about the evidence base: I have not found verified empirical
 work scoring integration rework against the axis the review skipped. That
 absence is why this is a hypothesis and not a finding.
 
-There is also a retrospective you can run today: take your last ten
-integration redesigns and, for each, name the requirement that was absent
-from the original review. If it maps to an axis here, the instrument would
-have caught it. If it doesn't map to any axis — that is evidence this
-framework is missing one, and that is precisely what I want to hear about.
+The retrospective you can run today is stronger than the hypothesis: take
+your last ten integration redesigns and, for each, name the requirement that
+was absent from the original review. If it maps to an axis here, the
+instrument would have caught it. If it doesn't map to any axis — that is
+evidence this framework is missing one, and that is precisely what I want to
+hear about.
 
 ## The instrument, ready to copy
 
@@ -288,15 +330,20 @@ is the review template — paste it into the ADR:
 Integration decision:
 Options considered:        [ call | projection | federation | hybrid ]
 
-Permission gate:           may this consumer hold/query this data?
-                           (entitlement, residency, purpose, retention)
-Temporal fidelity:         max age, coherence across sources, as_of visibility
-Runtime coupling:          required behavior during provider failure
-Reasoning capacity:        questions feasible without upstream change;
-                           latency/cost/availability budgets
+Admissibility gate (PER OPTION):
+    may this consumer query / persist / derive from / retain the data?
+    (granularity, purpose, residency, retention, entitlement)
+Temporal fidelity:         max age, lag, cross-source skew;
+                           coherence mechanism (watermark / skew bound / token)
+Runtime & change coupling: behavior during provider failure;
+                           blast radius of upstream schema/semantic change
+Reasoning capacity:        questions answerable without upstream change;
+                           history depth, joinable dimensions, lead time
 Authority:                 who commits, via which owner-mediated path
-Reversibility & reconciliation:  correction cost, conflict detection, compensator
-Economics & operability:   lifecycle cost of BOTH designs
+Decision consequence &     cost of a wrong decision; detection;
+recoverability:            correction (revalidate / compensate / review)
+Economics & operability:   lifecycle cost of BOTH designs, incl. replay,
+                           divergence repair, observability, on-call
 
 Chosen design:
 Rejected alternatives (and the row that decided):
