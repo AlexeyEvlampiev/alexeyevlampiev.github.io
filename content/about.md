@@ -1,12 +1,12 @@
 ---
 title: "About"
 layout: "single"
-description: "About Alexey Evlampiev, an Amsterdam-based data platform architect working on PostgreSQL, lakehouse architecture, and deterministic AI systems."
+description: "About Alexey Evlampiev, an Eindhoven-based data platform architect working on PostgreSQL, lakehouse architecture, and deterministic AI systems."
 ShowToc: false
 ShowBreadCrumbs: false
 ---
 
-I'm a Solutions Architect based in Amsterdam, designing autonomous AI systems and data platforms for clients in semiconductor manufacturing, international legal operations, and geospatial intelligence.
+I'm a Solutions Architect based in Eindhoven, designing autonomous AI systems and data platforms for clients in semiconductor manufacturing, international legal operations, and geospatial intelligence.
 
 My current work sits at the intersection of two worlds that rarely talk to each other: **Databricks Lakehouse** for deep offline analysis and GenAI enrichment, and **PostgreSQL** for low-latency, transactional workloads — including agentic AI state management. For a leading semiconductor equipment manufacturer, I architected a hybrid "Hot/Cold" memory system that unifies these layers into a single intelligence fabric, with agent tools running directly inside PostgreSQL's transaction boundary.
 
