@@ -187,6 +187,12 @@ body {
     text-underline-offset: 3px;
 }
 
+.post-content p,
+.post-content li {
+    text-align: justify;
+    hyphens: auto;
+}
+
 .post-content table th:first-child,
 .post-content table td:first-child {
     position: sticky;
