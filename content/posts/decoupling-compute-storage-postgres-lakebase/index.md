@@ -7,6 +7,7 @@ summary: "A vendor-neutral analysis of how Databricks Lakebase and the broader s
 cover:
   image: lakebase-ecosystem-integration-flow.png
   alt: "Databricks Lakebase ecosystem integration: bidirectional data flow between PostgreSQL, Unity Catalog, and Delta Lake"
+  relative: true
   hidden: true
 ShowToc: true
 TocOpen: false
