@@ -10,8 +10,9 @@ TocOpen: false
 
 <!-- STATUS: draft R0 (2026-07-17). Review rounds pending. TODO before publication:
      - verify Dehghani Nextdata (Jan 30, 2025) article URL and exact framing
-     - diagram gate: purpose-built role-reversal diagram (assess in R1)
+     - diagram gate: DONE 2026-07-17 — role-reversal.drawio(.png), visually verified, 1 iteration
      - re-verify Lakebase/LTAP feature status at publication date
+     - set og:image/cover for social previews at publication
      - set final date; decide series taxonomy AFTER naming gate (AGP-7) -->
 
 Somewhere in your organization, a team is building a usage service — metering
@@ -68,6 +69,8 @@ forecasting, and the account service's own refill logic.
 
 Call this **role reversal**. It is the mechanism by which independent
 applications become an ecosystem instead of a call graph.
+
+![Role reversal: two services above a shared knowledge substrate. The same dataset — account state — appears as amber operational reality inside the account service and as a green projected reference copy inside the usage service; usage and charge facts mirror the pattern in the opposite direction, each side publishing to and projecting from governed data products.](role-reversal.drawio.png)
 
 ## Standing on Helland's shoulders — and taking one more step
 
