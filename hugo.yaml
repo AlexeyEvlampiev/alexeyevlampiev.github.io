@@ -71,7 +71,7 @@ params:
       - "https://www.linkedin.com/in/alexey-evlampiev-09572921/"
 
   cover:
-    hiddenInList: false
+    hiddenInList: true
     hiddenInSingle: true
     responsiveImages: true
 

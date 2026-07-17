@@ -8,7 +8,7 @@ cover:
   image: lakebase-ecosystem-integration-flow.png
   alt: "Databricks Lakebase ecosystem integration: bidirectional data flow between PostgreSQL, Unity Catalog, and Delta Lake"
   relative: true
-  hiddenInList: false
+  hiddenInList: true
   hiddenInSingle: true
 ShowToc: true
 TocOpen: false
