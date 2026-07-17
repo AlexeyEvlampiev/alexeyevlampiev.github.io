@@ -12,7 +12,8 @@ TocOpen: false
      claims verified against primary sources (Fowler ECST, Dehghani 2020 "and back",
      LTAP "coming soon", Nextdata URL + quotes). TODO before publication:
      - re-verify Lakebase/LTAP feature status at publication date
-     - set og:image/cover (role-reversal.drawio.png) for social previews
+     - set og:image/cover for social previews; build simplified 1.91:1 social-card
+       variant of the diagram (larger labels, drop substrate detail line)
      - set final date; decide series taxonomy AFTER naming gate (AGP-7)
      - diagram gate: DONE — role-reversal.drawio(.png), visually verified -->
 
@@ -75,7 +76,7 @@ applications become an ecosystem instead of a call graph. The ingredients
 are old — the lineage section below names their owners — but the reciprocal
 obligation they add up to is worth stating as a principle in its own right.
 
-![Role reversal: two services above a shared knowledge substrate. The same dataset — account state — appears as amber operational reality inside the account service and as a green projected reference copy inside the usage service; usage and charge facts mirror the pattern in the opposite direction, each side publishing to and projecting from governed data products.](role-reversal.drawio.png)
+![Role reversal: two services above a shared knowledge substrate. The same dataset — account state — appears as amber operational reality inside the account service and as a green local projection inside the usage service; usage and charge facts mirror the pattern in the opposite direction, each side publishing to and projecting from governed data products.](role-reversal.drawio.png)
 
 ## The mechanism: publish, refine, project, join locally
 
@@ -163,8 +164,8 @@ This design has real costs, and the literature has already documented them —
 which is useful, because it means they are known quantities rather than
 surprises.
 
-**Storage and pipeline duplication.** Data is copied; pipelines must exist
-and be operated. The systematic review of the data-mesh literature ([ACM
+**Storage and pipeline duplication.** Projections usually mean copied data
+and operated pipelines. The systematic review of the data-mesh literature ([ACM
 Computing Surveys 57(1)](https://arxiv.org/abs/2304.01062)) records data
 duplication and effort duplication as documented practitioner concerns —
 alongside their standard mitigations. The honest comparison is not "copies
@@ -222,8 +223,9 @@ maintaining query-shaped derived state apart from the write path is a
 well-worn pattern. **The ownership and governance** are data products, as
 data mesh formulated them.
 
-What none of these states — and what this essay argues for — is the
-*reciprocal obligation*: that every application is simultaneously a publisher
+What none of these foregrounds as a single architecture-review obligation —
+and what this essay argues for — is the
+*reciprocity*: that every application is simultaneously a publisher
 of its operational reality and a consumer of others', with a governed
 refinement step in the middle; that "operational" and "reference" name the
 two ends of one recurring swap; and that an architecture review should ask
@@ -246,8 +248,8 @@ tending to stop at lakes, models, and dashboards. By
 [January 2025](https://www.nextdata.com/our-pov/the-data-mesh-challenge-how-to-close-the-gap-between-inception-and-operation-at-scale),
 Dehghani was describing data mesh as "a closed loop between operational and
 analytical systems" while conceding that "a very few organizations have been
-able to implement this closed loop." The loop was the intent; it was never
-the mechanism.
+able to implement this closed loop." The loop was the intent; the mechanism
+for operational re-entry remained underspecified.
 
 The vendors are moving to supply the mechanism. In February 2026, Databricks
 made [Lakebase](https://docs.databricks.com/aws/en/oltp/) generally
@@ -296,11 +298,11 @@ this application own, what does it publish, whose published reality does it
 project — and can it join the two locally?* When the answer to the last part
 is yes, integration stops being a call graph and starts being an ecosystem.
 
-Where has a local projection saved you — and where did its staleness cost
-more than the API dependency it replaced? I am especially interested in the
-counterexamples.
-
 *This is the first essay in a series on data-first architecture — how
 applications inherit knowledge, act on local reality, and return what they
 learn. The next one takes the trade at the center of this design — freshness,
 coupling, and reasoning capacity — and makes it explicit.*
+
+Where has a local projection saved you — and where did its staleness cost
+more than the API dependency it replaced? I am especially interested in the
+counterexamples.
