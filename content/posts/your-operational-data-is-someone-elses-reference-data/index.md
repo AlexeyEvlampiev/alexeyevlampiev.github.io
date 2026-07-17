@@ -206,7 +206,7 @@ contract carries effective-dated states and prices. Correlate burn with
 attributes. New questions are possible exactly within the projection's
 granularity, history depth, semantics, entitlements, and retained fields —
 and no further. The sequel gives that boundary a name, *reasoning capacity*,
-and makes it one of eight requirements for comparing integration candidates.
+and makes it one of eight dimensions for comparing integration candidates.
 
 To be precise about what was gained: coordination does not disappear —
 schema, semantics, entitlement, and freshness still require agreement at the
@@ -346,8 +346,8 @@ reviewable.
 
 ## Why this is surfacing now
 
-Data mesh — the most influential data-architecture formulation of the past
-decade — knew about the return path and chose not to center it. Zhamak
+Data mesh — one of the most influential data-architecture formulations of
+the past decade — knew about the return path and chose not to center it. Zhamak
 Dehghani's [2020 formulation](https://martinfowler.com/articles/data-mesh-principles.html)
 names the two-way flow as a familiar pain ("flowing data from operational
 data plane to the analytical plane, and back to the operational plane")
@@ -360,9 +360,9 @@ analytical systems" while conceding that "a very few organizations have been
 able to implement this closed loop." The loop was the intent; the mechanism
 for operational re-entry remained underspecified.
 
-The vendors are now shipping the mechanism's parts. Databricks'
+Products are now shipping parts of the mechanism. Databricks'
 [Lakebase](https://docs.databricks.com/aws/en/oltp/) puts a managed Postgres
-inside the lakehouse, and its
+inside the lakehouse, and its public-preview
 [change data feed](https://docs.databricks.com/aws/en/oltp/projects/lakebase-cdf)
 makes the publish step concrete: every insert, update, and delete is captured
 from the write-ahead log into append-only, governed tables. Delta tables in

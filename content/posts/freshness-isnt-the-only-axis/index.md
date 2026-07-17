@@ -37,8 +37,9 @@ instrument you can put on the table at Monday's review.
 
 ## The question with no per-call answer
 
-Consider a composite example, assembled from patterns most platform teams
-will recognize. A payments team is asked to flag accounts whose spending
+Stay in the account ecosystem of the first essay, but move the decision
+boundary to payments — a composite example, assembled from patterns most
+platform teams will recognize. A payments team is asked to flag accounts whose spending
 pattern this week diverges from their twelve-month baseline *and* whose
 account standing changed recently *and* whose plan tier makes the divergence
 commercially significant. Three domains: transactions (theirs), account
@@ -189,8 +190,8 @@ a licence for any particular candidate to retain it.
 | Change coupling | Survive upstream schema evolution | Insulated per call shape | Versioned feed, 90-day overlap — on the record | Every source schema in the query surface |
 | Reasoning capacity | Reconstruct 12 months of standing & plan history across 3 domains | **Requires two new contracts** | Already available | Only if sources expose history |
 | Authority | Freezing must commit against the owner's invariant | Command path exists | Read-only — freeze goes via owner path | Read-only |
-| Consequence & recovery | Flag advisory (human review); freeze authoritative, owner-revalidated | Same for all: flag cheap to correct; freeze dear | Flagging on ≤ 5-min-old data acceptable | Reproducibility needs a captured cut |
-| Lifecycle cost | Recurring, high fan-out, quarterly reshaping | Per-call cost + rate-limit negotiation | Feeds on the existing platform | Per-query engine + egress |
+| Consequence & recovery | Flag reversible via review; freeze owner-revalidated | Human review; freeze via owner path | Flag on ≤ 5-min evidence acceptable; freeze via owner path | Human review; capture the evidence cut; freeze via owner path |
+| Lifecycle cost | Recurring high-fan-out workload; decision logic changes quarterly | Per-call cost + rate-limit negotiation | Feeds on the existing platform | Per-query engine + egress |
 
 These cells describe *these candidates*, not their styles in general: an
 owner API with snapshot tokens or bulk history would score differently, a
@@ -208,9 +209,9 @@ minutes-old data is acceptable for the advisory decision and would be
 unacceptable for the authoritative one.
 
 Two honesty notes on the record. The lifecycle-cost row holds *under these
-assumptions* — an existing feed platform, quarterly reshaping, high fan-out;
-make this the only consumer running monthly with no platform, and the call
-column wins that row honestly. And the authority row's "command path" is a
+assumptions* — an existing feed platform, quarterly changes to the decision
+logic, and high fan-out; make this the only consumer running monthly with no
+platform, and the call column wins that row honestly. And the authority row's "command path" is a
 coordination requirement, not a transport: a synchronous API, a queued
 command, or an owner-mediated step within a saga all qualify, provided the
 owning domain validates and commits against its current invariant.
@@ -227,8 +228,8 @@ outages.
 And a neutrality check, made by moving the decision: a single-account
 invariant check at authorization time — low fan-out, current state, no
 history — selects the owner's API without a contest. A quarterly analyst
-investigation across three owner catalogs, tolerant of a source being
-briefly unavailable, selects federation and saves the pipeline. It was this
+investigation across three owner catalogs, able to wait for a source to
+recover, selects federation and avoids a dedicated pipeline. It was this
 decision's fan-out, history depth, and deploy-window requirement that
 selected the projection — not a preference for copies.
 
@@ -259,8 +260,8 @@ not break that seal; they arrive as new facts with their own record time,
 never as silent revisions of the sealed range. (The term is borrowed from
 [dataflow systems](https://timelydataflow.github.io/timely-dataflow/chapter_2/chapter_2_4.html),
 where a frontier is a promise about future timestamps — unlike the
-heuristic ["watermarks"](https://beam.apache.org/documentation/basics/) of
-most stream processors.) Two practical warnings: the `max(event_time)` you
+estimated [watermarks](https://beam.apache.org/documentation/basics/) used
+by systems such as Beam.) Two practical warnings: the `max(event_time)` you
 happened to observe is not a frontier, and treating it as one manufactures
 false coherence; and the `min` of several frontiers is meaningful only when
 the sources share a time domain and equivalent completeness semantics.
@@ -291,8 +292,8 @@ coherent" — it is whether the chosen design *has an explicit coherence
 mechanism*. Most per-call compositions silently have none. And a change feed
 is not that mechanism by itself: CDC streams and change data feeds can
 supply incremental delivery and source-order or commit metadata — not
-cross-source coherence, permanent history, semantic compatibility, or
-admissibility.
+cross-source coherence, decision-required retention, semantic
+compatibility, or admissibility.
 
 ## Reasoning capacity
 
