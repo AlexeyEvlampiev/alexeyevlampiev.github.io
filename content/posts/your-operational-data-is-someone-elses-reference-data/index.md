@@ -96,8 +96,8 @@ but never persisted, derived from, or retained, and that gate is checked per
 product, not assumed.
 
 Second, authoritative state changes remain owner-mediated unless that
-authority has been explicitly delegated: they go through the owner's API,
-where invariants and locks live.
+authority has been explicitly delegated. In the normal case, they go
+through an owner-controlled command path, where invariants and locks live.
 
 Within those boundaries, projection should be a first-class candidate for
 imported *knowledge*, not a universal replacement for calls — a narrow,
@@ -260,10 +260,11 @@ may this consumer query, persist, derive from, retain? — is checked per
 product, and the contract's entitlement clause is where the answer lives.
 Where it says no, nothing below applies to that data.
 
-**Commands do not reverse.** Reserving inventory, committing a payment, any
-action that must be checked against the owner's *current* invariant belongs
-behind the owner's API, where locks and validation live. Role reversal
-governs *knowledge* exchange, not authoritative behavior.
+**Projection does not transfer authority.** Reserving inventory, committing
+a payment, or performing any other action that must be checked against the
+owner's *current* invariant belongs on an owner-controlled command path —
+unless that authority has been explicitly delegated. Role reversal governs
+*knowledge* exchange, not authoritative behavior.
 
 **Narrow reads are cheaper as calls.** A projection is a pipeline you
 operate. If the question is low-volume, current-state, and shaped exactly
@@ -303,9 +304,9 @@ architecture review:
 - **Reach for a projection** when questions have high fan-out or need joins,
   evolve unpredictably, tolerate bounded staleness, and must survive the
   provider's outages.
-- **Reach for the owner's API** when the operation changes authoritative
-  state, must validate against a current invariant, or cannot tolerate stale
-  authorization or availability information.
+- **Reach for an owner-controlled command path** when the operation changes
+  authoritative state, must validate against a current invariant, or cannot
+  tolerate stale authorization or availability information.
 
 And expect the boundary to move with the stakes: the same account data may be
 screened from a projection, explored in an analytical store, and acted on
@@ -442,12 +443,9 @@ published knowledge and owner-mediated action.
 
 *This is the first essay in a series on data-first architecture — how
 applications inherit knowledge, act on local reality, and return what they
-learn. The [next one](/posts/freshness-isnt-the-only-axis/) turns the
-decision at the center of this design into an instrument: eight dimensions
-of evaluation for choosing among API calls, projections, and federated
-queries. Later essays extend the loop to composite, purpose-synthesized
-products, models as executable knowledge, and the return of decisions and
-outcomes.*
+learn. [Part two](/posts/freshness-isnt-the-only-axis/) is already live;
+later essays extend the loop to composite, purpose-synthesized products,
+models as executable knowledge, and the return of decisions and outcomes.*
 
 Where has a local projection saved you — and where did its staleness cost
 more than the API dependency it replaced? I am especially interested in the
