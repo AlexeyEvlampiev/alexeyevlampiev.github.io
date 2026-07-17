@@ -7,6 +7,7 @@ summary: "Data is operational to its owner and reference to everyone else. Gover
 cover:
   image: social-card.drawio.png
   alt: "The same dataset, two roles: account state as amber operational reality in the account service and as a green local projection in the usage service, exchanged through a shared knowledge substrate"
+  relative: true
   hidden: true
 ShowToc: true
 TocOpen: false
