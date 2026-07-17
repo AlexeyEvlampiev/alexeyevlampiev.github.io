@@ -18,6 +18,20 @@ TocOpen: false
 turns the principle introduced here into an eight-dimension decision
 instrument.*
 
+## Abstract
+
+Operational and reference data are not fixed categories. They are roles
+relative to producer and consumer. This article defines **role reversal**: a
+domain publishes governed operational facts; another domain projects them as
+reference knowledge and computes them with its own data. An account-and-usage
+example shows why this supports questions that per-call APIs cannot answer
+without new contracts. The pattern increases reasoning capacity and reduces
+request-path dependence. It also adds storage, pipeline, and reconciliation
+cost. It applies only when persistence is admissible. Authoritative state
+changes remain on an owner-controlled command path.
+
+## The problem
+
 A usage service meters calls, clicks, deliveries, or energy.
 It must price usage and predict when an account will exhaust its balance.
 That requires account state and price-plan data. Another team owns both.
@@ -360,14 +374,24 @@ decision boundary; the two are computed together.* A lakehouse, stream,
 logical replication, or nightly batch can implement it. Review the loop and
 its governance, not the vendor.
 
-## The one-line version
+## Conclusion
 
-Do not ask only which API a system exposes. Ask four questions: What reality
-does it own? What does it publish? Whose reality does it project? Can it
-compute the two together?
+Role reversal moves part of integration from request time to publication
+time. The producer publishes governed reality. The consumer projects the
+facts it needs and computes them with local reality. A new question that fits
+the product contract no longer requires a new provider interface or release.
 
-If it can, integration no longer has to be a call graph. It can become an
-ecosystem of published knowledge and owner-mediated action.
+This does not eliminate calls. Use an owner-controlled command path for
+authoritative state changes. Use calls for narrow current-state reads when a
+projection costs more than it returns. Use federation when query-time access
+is acceptable and a consumer copy is not.
+
+The architecture review therefore needs four questions: What reality does
+the application own? What does it publish? Whose reality does it project?
+Can it compute the two together? These questions turn a call graph into a
+reviewable information ecosystem.
+
+---
 
 *This is Part 1 of a series on data-first architecture. [Part
 2](/posts/freshness-isnt-the-only-axis/) defines an eight-dimension decision

@@ -18,6 +18,21 @@ TocOpen: false
 introduced role reversal: publish your reality, project theirs, join
 locally. This essay turns that principle into a decision instrument.*
 
+## Abstract
+
+Freshness alone cannot determine an integration design. A fresh API response
+may lack history, cross-source coherence, runtime independence, or the
+authority required by the decision. This article defines an admissibility
+gate and eight evaluation dimensions for calls, projections, federation, and
+hybrid designs. It applies the instrument to a payments case that requires
+three domains and twelve months of history. The result is hybrid: projections
+support screening; an owner-controlled command performs the authoritative
+action. The article also separates data age from temporal coherence and
+defines **reasoning capacity** as the questions a design can answer without
+an upstream contract change.
+
+## The problem
+
 Architecture reviews often reject a local projection with one sentence:
 *"The copy will be stale. The API gives us current truth."*
 
@@ -363,16 +378,24 @@ Denning's [locality principle](https://denninginstitute.com/pjd/PUBS/CACMcols/ca
 can address some dimensions. Semantics, authority, recovery, and admissibility
 remain architecture decisions.
 
-## What to take into the next review
+## Conclusion
 
-Freshness measures evidence age. It does not establish meaning, reasoning
-capacity, availability, or authority. Choose the evidence path and action
-path separately. The result may be hybrid.
+Freshness measures evidence age. It does not establish meaning, coherence,
+reasoning capacity, availability, authority, or recoverability. A fresher
+candidate can still be the wrong design.
+
+Evaluate concrete candidates against explicit requirements. Apply
+admissibility first. Then record evidence for all eight dimensions. Choose
+the evidence path and the action path separately. In the payments example,
+projections support broad historical screening. An owner-controlled command
+protects the authoritative transition.
 
 Test the instrument against your last ten integration redesigns. Name the
 requirement that the original review missed. If it maps to a dimension here,
-the review had a place to raise it. If it does not, the framework is missing
-a dimension.
+the instrument had a place to expose it. If it does not, the framework is
+missing a dimension.
+
+---
 
 *This is Part 2 of a series on data-first architecture. [Part
 1](/posts/your-operational-data-is-someone-elses-reference-data/) introduced
