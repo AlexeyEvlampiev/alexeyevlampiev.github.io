@@ -3,7 +3,7 @@ title: "Your Operational Data Is Someone Else's Reference Data"
 date: 2026-07-17
 draft: true
 tags: ["Data Architecture", "Software Architecture", "Data Mesh", "Event-Driven Architecture", "Microservices", "Data Products"]
-summary: "Data is operational to its owner and reference to everyone else. Governed local projections let services answer new cross-domain questions without synchronous API choreography."
+summary: "Data is operational to its owner and reference to everyone else. Governed consumer-oriented projections let services answer new cross-domain questions without synchronous API choreography."
 cover:
   image: social-card.drawio.png
   alt: "The same dataset, two roles: account state as amber operational reality in the account service and as a green local projection in the usage service, exchanged through a shared knowledge substrate"
@@ -15,9 +15,9 @@ TocOpen: false
 
 Somewhere in your organization, a team is building a usage service — metering
 API calls, clicks, deliveries, kilowatt-hours, whatever your business counts.
-To price a unit of usage, it needs to know things it does not own: the
-account's remaining balance, its commercial state, its price plan. Another
-team owns those facts.
+To price usage and predict when an account will exhaust its balance, it
+needs facts it does not own: the account's remaining balance, its commercial
+state, and its price plan. Another team owns those facts.
 
 The standard answer is: call their API. And for the first question — *what is
 this account's balance right now?* — the API works. Then the product asks a
@@ -89,9 +89,9 @@ authoritative state goes through the owner's API, where invariants and locks
 live. And projection should be a first-class candidate for imported
 *knowledge*, not a universal replacement for calls — a narrow, low-volume
 read is often better as a call, and a federated query can serve cross-domain
-reads without a consumer copy. This essay argues that the candidate is
-systematically under-considered; the sequel compares the alternatives as
-equals.
+reads without a consumer copy. In the architecture reviews I encounter,
+projection is routinely the under-considered candidate; the sequel compares
+it with calls and federation as equals.
 
 ![Role reversal: two services above a shared knowledge substrate. The same dataset — account state — appears as amber operational reality inside the account service and as a green local projection inside the usage service; usage and charge facts mirror the pattern in the opposite direction, each side publishing to and projecting from governed data products.](role-reversal.drawio.svg)
 
@@ -107,17 +107,18 @@ Publication is part of the application's job, not an afterthought for the
 analytics team.
 
 **2. Refine and govern.** The stream becomes a governed product with explicit
-semantics. The division of labor matters: the platform supplies the
-mechanism — ingestion, normalization, policy enforcement, delivery — while
-the *producing domain owns the semantics*. It helps to name which
-transformations are whose: mechanical work (format, transport, policy
-enforcement) is platform-owned; anything that changes meaning (unit
-conversion, key mapping, null semantics, temporal interpretation) ships only
-with the producer's approval, exactly like a schema change; and a
-consumer-specific derivation is a *new* product with its own owner, not a
-mutation of this one. Without that split, "shared platform" quietly becomes a
-central integration team that owns everyone's semantics. Concretely, a
-product definition looks like this:
+semantics. The ownership split matters:
+
+- The platform owns the mechanism: ingestion, normalization, transport,
+  delivery, policy enforcement.
+- The producer approves anything that changes meaning — units, keys, null
+  semantics, temporal interpretation — exactly as it would a schema change.
+- A consumer-specific derivation is a *new* product with its own owner, not
+  a mutation of this one.
+
+Without that split, "shared platform" quietly becomes a central integration
+team that owns everyone's semantics. Concretely, a product definition looks
+like this:
 
 ```yaml
 product: account-state
@@ -146,16 +147,18 @@ owner*, not tribal knowledge discovered during incidents.
 **3. Project.** The usage service imports the product into its own boundary
 as a **projection** — a consumer-oriented representation, *maintained ahead
 of the decision*, that the service can query, index, and join while the
-account service remains the only writer of the underlying truth. Where the
-bytes live is secondary: a governed, materialized view on shared storage
-that is kept ahead of decision time is still a projection; composing a query
-against the owners' sources *at* decision time is not — that is federation,
-the sequel's third candidate. One caution about the shared-storage form: it
-provides local query semantics without a separate failure domain — when the
-shared storage is down, so is your "local" read. The review card at the end
-of this essay asks about query locality and failure locality separately,
-because designs that provide the first while implying the second are where
-outage surprises come from.
+account service remains the only writer of the underlying truth.
+
+Where the bytes live is secondary. A governed, materialized view on shared
+storage that is kept ahead of decision time is still a projection; composing
+a query against the owners' sources *at* decision time is not — that is
+federation, the sequel's third candidate.
+
+One caution about the shared-storage form: it provides local query semantics
+without a separate failure domain — when the shared storage is down, so is
+your "local" read. The review card below asks about query locality and
+failure locality separately, because designs that provide the first while
+implying the second are where outage surprises come from.
 
 **4. Join locally.** And this is where the payoff lives. The
 week-to-exhaustion question that had no endpoint becomes one query inside the
@@ -287,6 +290,47 @@ screened from a projection, explored in an analytical store, and acted on
 authoritatively only through the owner's API — one dataset, three access
 modes, each correct for its decision.
 
+## The role-reversal review
+
+A principle you cannot run in a review is a slogan. Here is the compact
+version — one block to paste into an ADR next to the decision it serves:
+
+```text
+Decision this integration serves:
+Operational reality owned here:
+External knowledge required:
+For each external product:
+    Semantic owner:
+    Admissibility — query / persist / derive / retain:
+    Grain and history depth:
+    Freshness and completeness contract:
+    Corrections, deletions, replay:
+    Query locality / failure locality:
+Authoritative actions that must return to the owner:
+Knowledge this application publishes in return:
+```
+
+The last line is the one reviews forget, and it is the reciprocity this essay
+exists to argue for. The sequel's per-candidate ADR template goes deeper on
+the middle — comparing candidate mechanisms requirement by requirement — but
+this card is enough to make the loop, and its gaps, visible.
+
+## Measuring it
+
+The essay's central claim is countable: **producer-side changes per new
+cross-domain question.** Count the endpoint additions, bulk-export requests,
+and producer releases each new question required, before and after governed
+projections — and compare within a team across time, because teams with
+mature platforms both project more and ship faster, and a cross-team
+comparison flatters the projection.
+
+Or start with a retrospective that needs no infrastructure at all. Take the
+last ten cross-domain questions your team answered. For each, record where
+the answer actually came from — a new endpoint, a bulk export, an
+undocumented extract, a local join — and how many producer-side changes it
+took. If undocumented extracts appear on the list, role reversal is already
+happening in your organization; it is just happening without a contract.
+
 ## Whose shoulders, exactly
 
 None of the raw ingredients here are new, and naming their owners makes the
@@ -298,15 +342,17 @@ Data on the Inside"](https://www.cidrdb.org/cidr2005/papers/P12.pdf) (CIDR
 different from data inside one: unlocked, uncertain, and stale — "The
 contents of a message are always from the past!" — and described *reference
 data* with exactly one publishing service per dataset, consumed as versioned
-snapshots that are deliberately, admittedly out of date. **The movement** is
-event-carried state transfer: Martin Fowler's
+snapshots that are deliberately, admittedly out of date.
+
+**The movement** is event-carried state transfer: Martin Fowler's
 [2017 taxonomy of event-driven patterns](https://martinfowler.com/articles/201701-event-driven.html)
 describes recipients maintaining their own copy of another system's data "so
 that it never needs to talk to the main customer system in order to do its
-work" — with the same trade-offs this essay carries. **The read model** is
-CQRS: query-shaped derived state apart from the write path is a well-worn
-pattern. **The ownership and governance** are data products, as data mesh
-formulated them.
+work" — with the same trade-offs this essay carries.
+
+**The read model** is CQRS: query-shaped derived state apart from the write
+path is a well-worn pattern. **The ownership and governance** are data
+products, as data mesh formulated them.
 
 What I want to foreground as a single architecture-review obligation is the
 *reciprocity*: that every application
@@ -358,47 +404,6 @@ intersection of the two is where the interesting questions get answered.*
 You can implement it with a lakehouse, a stream, logical replication, or a
 nightly batch — the architecture review question is whether the loop exists
 and is governed, not which vendor closes it.
-
-## The role-reversal review
-
-A principle you cannot run in a review is a slogan. Here is the compact
-version — one block to paste into an ADR next to the decision it serves:
-
-```text
-Decision this integration serves:
-Operational reality owned here:
-External knowledge required:
-For each external product:
-    Semantic owner:
-    Admissibility — query / persist / derive / retain:
-    Grain and history depth:
-    Freshness and completeness contract:
-    Corrections, deletions, replay:
-    Query locality / failure locality:
-Authoritative actions that must return to the owner:
-Knowledge this application publishes in return:
-```
-
-The last line is the one reviews forget, and it is the reciprocity this essay
-exists to argue for. The sequel's per-candidate ADR template goes deeper on
-the middle — comparing candidate mechanisms requirement by requirement — but
-this card is enough to make the loop, and its gaps, visible.
-
-## Measuring it
-
-The essay's central claim is countable: **producer-side changes per new
-cross-domain question.** Count the endpoint additions, bulk-export requests,
-and producer releases each new question required, before and after governed
-projections — and compare within a team across time, because teams with
-mature platforms both project more and ship faster, and a cross-team
-comparison flatters the projection.
-
-Or start with a retrospective that needs no infrastructure at all. Take the
-last ten cross-domain questions your team answered. For each, record where
-the answer actually came from — a new endpoint, a bulk export, an
-undocumented extract, a local join — and how many producer-side changes it
-took. If undocumented extracts appear on the list, role reversal is already
-happening in your organization; it is just happening without a contract.
 
 ## The one-line version
 

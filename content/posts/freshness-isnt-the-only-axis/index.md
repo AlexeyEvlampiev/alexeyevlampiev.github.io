@@ -37,8 +37,8 @@ instrument you can put on the table at Monday's review.
 
 ## The question with no per-call answer
 
-Stay in the account ecosystem of the first essay, but move the decision
-boundary to payments — a composite example, assembled from patterns most
+Stay in the account-and-plan ecosystem of the first essay, but move the
+decision boundary to payments — a composite example, assembled from patterns most
 platform teams will recognize. A payments team is asked to flag accounts whose spending
 pattern this week diverges from their twelve-month baseline *and* whose
 account standing changed recently *and* whose plan tier makes the divergence
@@ -159,7 +159,7 @@ For the payments case, the candidates are concrete:
 - **API candidate:** the owners' existing current-state per-account
   endpoints; no bulk export, no history, no snapshot token.
 - **Projection candidate:** effective-dated feeds from both owners onto the
-  team's existing data platform; observed lag ≤ 5 minutes.
+  team's existing data platform; contracted lag ≤ 5 minutes, monitored.
 - **Federation candidate:** live queries through a shared engine across
   three separately operated catalogs.
 
@@ -184,14 +184,14 @@ a licence for any particular candidate to retain it.
 
 | Dimension | Required here | API / composition | Projection | Federation |
 |---|---|---|---|---|
-| Time | Age ≤ 5 min; skew ≤ 60 s; coherent historical cut | Fresh current state; **no historical cut** | Effective-dated history + completeness frontiers | Current reads; **no cross-source cut** |
-| Semantics | Standing states mapped to review taxonomy | Owner's semantics at call time | Owner-mapped per contract; corrections flow | Connector-exposed; mismatches land on consumer |
+| Time | Age ≤ 5 min; skew ≤ 60 s; coherent historical cut | Fresh current state; **no historical cut** | Meets: contracted, monitored age ≤ 5 min, skew ≤ 60 s, reconstructable cuts | Current reads; **no cross-source cut** |
+| Semantics | Standing states mapped to review taxonomy | Owner-defined; consumer maps to taxonomy | Mapping recorded in the contract; corrections propagate | Owner-defined per source; consumer reconciles across catalogs |
 | Runtime | Full fan-out screening during provider deploy windows | **Fails** availability at fan-out | Meets — local batch query | Needs every source + engine healthy |
-| Change coupling | Survive upstream schema evolution | Insulated per call shape | Versioned feed, 90-day overlap — on the record | Every source schema in the query surface |
+| Change coupling | Survive upstream schema evolution | Shape insulated by endpoint; semantic changes still couple | Versioned feed + semantic contract; 90-day overlap | Source schemas and semantics exposed to the query |
 | Reasoning capacity | Reconstruct 12 months of standing & plan history across 3 domains | **Requires two new contracts** | Already available | Only if sources expose history |
 | Authority | Freezing must commit against the owner's invariant | Command path exists | Read-only — freeze goes via owner path | Read-only |
 | Consequence & recovery | Flag reversible via review; freeze owner-revalidated | Human review; freeze via owner path | Flag on ≤ 5-min evidence acceptable; freeze via owner path | Human review; capture the evidence cut; freeze via owner path |
-| Lifecycle cost | Recurring high-fan-out workload; decision logic changes quarterly | Per-call cost + rate-limit negotiation | Feeds on the existing platform | Per-query engine + egress |
+| Lifecycle cost | Recurring high-fan-out workload; decision logic changes quarterly | Call volume, rate limits, provider capacity | Feed, storage, replay, reconciliation, monitoring — on the existing platform | Engine + connector operation, egress, source load |
 
 These cells describe *these candidates*, not their styles in general: an
 owner API with snapshot tokens or bulk history would score differently, a
@@ -207,6 +207,16 @@ result's logic out loud: *reasoning capacity selected the read design;
 consequence and authority selected the action boundary.* The same
 minutes-old data is acceptable for the advisory decision and would be
 unacceptable for the authoritative one.
+
+### Why this result is not doctrine
+
+Move the decision, and the instrument selects differently: a single-account
+invariant check at authorization time — low fan-out, current state, no
+history — selects the owner's API without a contest. A quarterly analyst
+investigation across three owner catalogs, able to wait for a source to
+recover, selects federation and avoids a dedicated pipeline. It was this
+decision's fan-out, history depth, and deploy-window requirement that
+selected the projection — not a preference for copies.
 
 Two honesty notes on the record. The lifecycle-cost row holds *under these
 assumptions* — an existing feed platform, quarterly changes to the decision
@@ -225,19 +235,14 @@ federation earns its place for interactive, occasional, freshness-hungry
 analysis — and loses it for an always-on path that must survive provider
 outages.
 
-And a neutrality check, made by moving the decision: a single-account
-invariant check at authorization time — low fan-out, current state, no
-history — selects the owner's API without a contest. A quarterly analyst
-investigation across three owner catalogs, able to wait for a source to
-recover, selects federation and avoids a dedicated pipeline. It was this
-decision's fan-out, history depth, and deploy-window requirement that
-selected the projection — not a preference for copies.
-
 ## Age is not coherence
 
-Now the two deep dives that explain why the decisive rows behaved as they
-did — first, time. Three different guarantees get conflated in every
-staleness argument. A transaction over a local projection guarantees that
+The framework is complete at this point. The next two sections explain the
+two dimensions that most often change the outcome — first, time; if you want
+only the reusable template, skip ahead to
+[the instrument](#the-instrument-ready-to-copy).
+
+Three different guarantees get conflated in every staleness argument. A transaction over a local projection guarantees that
 the query sees *one committed state of the projection*. It does not
 guarantee that every fact in that state describes *the same business
 instant*: if account standing was observed at 10:03 and plan tier at 10:07,
@@ -402,9 +407,16 @@ Denning's [locality principle](https://denninginstitute.com/pjd/PUBS/CACMcols/ca
 product position on a few of these dimensions; semantics, authority,
 recovery, and the gate remain yours.
 
-## An exercise you can run today
+## The landing, and an exercise
 
-Take your last ten integration redesigns and, for each, name the
+Freshness tells you how recent the evidence is. It does not tell you whether
+the evidence means the right thing, can answer the required question, will
+be available when the decision runs, or belongs to the system authorized to
+act. Choose the evidence path and the action path separately; a hybrid is
+often the honest result.
+
+Then test the instrument against your own history. Take your last ten
+integration redesigns and, for each, name the
 requirement absent from the original review. If it maps to a dimension
 here, the instrument had an explicit place where that requirement could
 have been raised. If it doesn't map to any — that is evidence this
