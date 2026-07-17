@@ -82,7 +82,7 @@ applications become an ecosystem instead of a call graph. The ingredients
 are old — the lineage section below names their owners — but the reciprocal
 obligation they add up to is worth stating as a principle in its own right.
 
-![Role reversal: two services above a shared knowledge substrate. The same dataset — account state — appears as amber operational reality inside the account service and as a green local projection inside the usage service; usage and charge facts mirror the pattern in the opposite direction, each side publishing to and projecting from governed data products.](role-reversal.drawio.png)
+![Role reversal: two services above a shared knowledge substrate. The same dataset — account state — appears as amber operational reality inside the account service and as a green local projection inside the usage service; usage and charge facts mirror the pattern in the opposite direction, each side publishing to and projecting from governed data products.](role-reversal.drawio.svg)
 
 ## The mechanism: publish, refine, project, join locally
 
