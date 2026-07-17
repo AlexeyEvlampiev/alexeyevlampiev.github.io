@@ -210,6 +210,14 @@ body {
     text-underline-offset: 3px;
 }
 
+.post-content table th:first-child,
+.post-content table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--theme);
+}
+
 .post-tags a {
     color: var(--accent);
     background: var(--accent-soft);
