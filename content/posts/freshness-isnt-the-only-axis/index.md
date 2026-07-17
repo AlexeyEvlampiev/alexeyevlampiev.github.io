@@ -8,13 +8,16 @@ ShowToc: true
 TocOpen: false
 ---
 
-<!-- STATUS: draft R0 (2026-07-17). Essay 2 of the series (AGP-4). Review rounds
-     pending. MANDATORY before publication: revision round folding in Essay 1's
-     launch reception (reader counterexamples feed this essay's trade-space
-     treatment directly — user accepted early drafting on this condition).
-     TODO: diagram gate (three-box intersection, purpose-built, essay-1 palette);
-     social card; Essay 1 canonical link verify; final date; series taxonomy
-     after AGP-7 naming gate; LTAP/Lakebase status re-check at publication. -->
+<!-- STATUS: draft R1 (2026-07-17) — dedicated research audit applied (run
+     wf_942899a7-681 + manual Richardson check; report:
+     pgmi repo .private/research/essay2-trade-space-2026-07-17.md). Claims
+     narrowed per verdict; PACELC/Denning/Azure/Richardson/federation/arXiv
+     citations installed. MANDATORY before publication: revision round folding
+     in Essay 1's launch reception. TODO: re-verify session-limit casualties
+     (arXiv 2604.00715 sub-claims; empirical rework papers 2302.01894 +
+     1908.04101) OR keep hypothesis hedged as-is; social card; diagram DONE;
+     final date; series taxonomy after AGP-7 naming gate; LTAP/Lakebase +
+     Trino-pushdown status re-check at publication (version-sensitive). -->
 
 Every architecture review of a data integration reaches the same moment.
 Someone proposes keeping a local copy of another domain's data, and someone
@@ -75,17 +78,24 @@ review. For each integration, ask six questions:
 | **Reconciliation risk** | When a stale projection produces a decision the source's later state contradicts, what corrects it — compensation, revalidation, tolerance? If the answer is "that can't happen," the design isn't finished. |
 | **Economics** | Is continuous replication and storage cheaper than repeated remote computation, bespoke endpoints, and the engineering time of request choreography? Count all of it, both sides. |
 
-Two of these axes have distinguished ancestry. Pat Helland established the
-endpoints of the freshness axis in
-[2005](https://www.cidrdb.org/cidr2005/papers/P12.pdf): any data that crosses
-a service boundary "is always from the past" — the only choice is how far
-past, and whether the bound is explicit. He also grounded the coupling axis:
-participating in another system's transaction means holding its locks, "a
-serious ceding of independence." Every projection-versus-API argument since
-has been a negotiation between those two poles.
+Several of these axes have distinguished ancestry — they are inherited, not
+discovered here. Pat Helland established the endpoints of the freshness axis
+in [2005](https://www.cidrdb.org/cidr2005/papers/P12.pdf): any data that
+crosses a service boundary "is always from the past" — the only choice is how
+far past, and whether the bound is explicit. He also grounded the coupling
+axis: participating in another system's transaction means holding its locks,
+"a serious ceding of independence." Daniel Abadi's
+[PACELC](https://www.cs.umd.edu/~abadi/papers/abadi-pacelc.pdf) made the
+replication half formal in 2012: "as soon as a DDBS replicates data, a
+tradeoff between consistency and latency arises" — present at all times,
+partition or no partition. And mainstream vendor guidance names the authority
+axis outright:
+[Azure's integration guidance](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/data-considerations)
+describes one service as "the source of truth for a given entity" while
+others hold eventually consistent copies.
 
-What the literature does not carry as a decision axis is the third one — and
-it is the one that decided the payments example.
+What none of that lineage carries as a *decision axis* is the third row of
+the table — and it is the one that decided the payments example.
 
 ## Reasoning capacity, defined
 
@@ -114,6 +124,13 @@ is in a similar position: it can echo what it observes, and it can relay
 point answers it was anticipated to need — but it cannot *conclude* anything
 that requires the intersection.
 
+The analogy has recently acquired a formal cousin: an April 2026
+[preprint](https://arxiv.org/abs/2604.00715) fits scaling laws for exactly
+this split in ML systems — knowledge held in model weights versus knowledge
+retrieved at inference time, competing under a fixed budget. Transferring
+that axis to integration decisions is my own move; but the trade itself is
+no longer merely rhetorical.
+
 That is why the decision rule from the first essay put "questions evolve
 unpredictably" on the projection side. Unpredictable questions are not an
 edge case; they are what product development *is*. An axis that measures the
@@ -137,14 +154,33 @@ continuous with event sourcing and CQRS — different fields using different
 vocabulary for the same thing.
 
 So the claim is emphatically not "local derived state is new." The claim is
-narrower and, I think, more useful: the literature hands us the *mechanism*
-and a list of overlapping *benefits* — Kleppmann's talk enumerates simpler
-code, scalability, robustness, latency, flexibility — but not the *decision
-instrument*. Benefits lists tell you what you gain; they don't weigh what
-you trade. Helland gives two axes with endpoints; the practitioners' debate
-collapsed to one ("but staleness"); and reasoning capacity — the axis that
-measures whether the system can answer the questions the business hasn't
-asked yet — appears in none of them as something to score a design against.
+narrower, and I checked it against the places a decision framework would
+actually live.
+[Azure's data-considerations guidance](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/data-considerations)
+opens with "No single approach works for all cases" and offers guideline
+prose; its one gesture at query capability — build "a materialized view of
+the data that's more suitable for querying" — appears as a benefit sentence,
+never as something to weigh. Chris Richardson's
+[command-side-replica pattern](https://microservices.io/patterns/data/command-side-replica.html)
+goes furthest: he evaluates it against his named "dark energy / dark matter"
+forces — ten of them, from team autonomy to runtime coupling — genuine
+structured evaluation, applied to one pattern in isolation, with no
+replica-versus-query matrix and nothing resembling reasoning capacity among
+the forces. Kleppmann's talk enumerates overlapping *benefits*: simpler code,
+scalability, robustness, latency, flexibility. Even Peter Denning's
+[locality principle](https://denninginstitute.com/pjd/PUBS/CACMcols/cacmJul05.pdf)
+— the deepest root of "bring data close to the process" — is deliberately a
+one-axis rule.
+
+The pattern across all of them: the axes exist *scattered* — as guideline
+bullets, force lists, and benefit sentences — and no source I have checked
+assembles them into one instrument for this decision, with reasoning
+capacity weighed as a first-class axis. There is respectable precedent for
+exactly this kind of complaint: Abadi built PACELC on the observation that
+CAP "does not constrain any system capabilities during normal operation" — a
+famous framework, missing the axis that operates all the time. That is the
+shape of what I am claiming about the projection-versus-API debate: the
+operative axis is missing from the force lists.
 
 Six questions, asked explicitly, produce a defensible decision. One
 question, asked rhetorically, produces whatever the loudest person already
@@ -178,6 +214,28 @@ Display a customer's current balance in their banking app? Freshness
 dominates and the owner's read API is exactly right. The table is not a
 projection advocacy device; it is what keeps *both* sides honest.
 
+## The third option, on the same axes
+
+Federated query engines — Trino, Starburst, the data-virtualization family —
+promise the tempting middle: cross-domain joins with no local copies. The
+promise is real, and so are its documented terms: predicate pushdown is
+connector-specific, and
+[join pushdown requires the joined tables to share a catalog](https://trino.io/docs/current/optimizer/pushdown.html)
+— which means the genuinely cross-domain join, the one this essay cares
+about, executes by pulling data into the engine at query time. Federation
+doesn't escape the trade space; it takes its own position in it. Freshness:
+excellent — facts are read live. Reasoning capacity: good — SQL over
+everything the connectors reach. But the coupling row *inverts*: the decision
+now requires every source system healthy at query time, which is the
+projection's coupling profile turned inside out. And economics become
+per-query and conditional — "often" a cost reduction, say the vendors'
+own docs, choosing the adverb carefully.
+
+Run federation through the six questions and it earns its place for
+interactive, occasional, freshness-hungry analysis — and loses it for the
+always-on decision path that must survive a provider's bad day. The
+instrument doesn't pick sides; it prices them.
+
 ## Why this is worth naming now
 
 The projection step is being productized aggressively. Databricks'
@@ -206,6 +264,11 @@ unanswerable question — **than teams whose reviews argue freshness alone.**
 Measure reworked integrations per year and which axis the original review
 failed to discuss. My prediction is that the missing axis predicts the
 failure class.
+
+To be explicit about the evidence base: I have not found verified empirical
+work that scores integration rework against the axis the review skipped.
+That absence is why this is a hypothesis and not a finding — and why real
+counterexamples are worth more to me than agreement.
 
 ## The one-line version
 
