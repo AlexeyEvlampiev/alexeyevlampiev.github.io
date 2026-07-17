@@ -1,7 +1,7 @@
 ---
 title: "Your Operational Data Is Someone Else's Reference Data"
 date: 2026-07-17
-draft: false
+draft: true
 tags: ["Data Architecture", "Software Architecture", "Data Mesh", "Event-Driven Architecture", "Microservices", "Data Products"]
 summary: "Data is operational to its owner and reference to everyone else. Governed local projections let services answer new cross-domain questions without synchronous API choreography."
 cover:

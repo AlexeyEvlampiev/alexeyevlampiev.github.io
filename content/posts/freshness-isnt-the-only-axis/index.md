@@ -1,7 +1,7 @@
 ---
 title: "Freshness Isn't the Only Axis: APIs, Projections, and Federated Queries"
 date: 2026-07-17
-draft: false
+draft: true
 tags: ["Data Architecture", "Software Architecture", "Data Mesh", "Event-Driven Architecture", "Microservices", "API Design"]
 summary: "An API can be fresher and still be the wrong integration. Compare calls, projections, and federated queries across eight dimensions of evaluation — from temporal coherence and semantics to authority and recoverability."
 cover:
