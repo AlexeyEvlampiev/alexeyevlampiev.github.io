@@ -253,11 +253,13 @@ decision_cutoff = min(transaction_frontier,
 maximum permitted frontier skew: 60 seconds
 ```
 
-In this instrument, a **completeness frontier** is a *contractual* claim:
-the source asserts that its originally observed event stream at or before
-*t* is complete — no future delivery will extend it. Later corrections do
-not break that seal; they arrive as new facts with their own record time,
-never as silent revisions of the sealed range. (The term is borrowed from
+Each source must be able to say: *"I have delivered everything I originally
+observed up to 10:03."* That promise is a **completeness frontier** — in
+this instrument, a *contractual* claim that the originally observed event
+stream at or before *t* is complete, and no future delivery will extend it.
+A correction arriving tomorrow is a new record-time fact about an earlier
+effective state; it does not silently rewrite what the system knew
+yesterday. (The term is borrowed from
 [dataflow systems](https://timelydataflow.github.io/timely-dataflow/chapter_2/chapter_2_4.html),
 where a frontier is a promise about future timestamps — unlike the
 estimated [watermarks](https://beam.apache.org/documentation/basics/) used
@@ -297,10 +299,12 @@ compatibility, or admissibility.
 
 ## Reasoning capacity
 
-**Reasoning capacity is the set of decision-relevant question classes a
-candidate can answer from the data, history, and query contracts already
-available to it — at the required granularity and history depth, without an
-upstream contract change.**
+In plain language: **can this design answer tomorrow's question without
+asking another team to change its interface?** Formally: reasoning capacity
+is the set of decision-relevant question classes a candidate can answer
+from the data, history, and query contracts already available to it — at
+the required granularity and history depth, without an upstream contract
+change.
 
 The definition is deliberately neutral across candidates — locality is not
 part of it — and measurable: which fields, join keys, and grains are

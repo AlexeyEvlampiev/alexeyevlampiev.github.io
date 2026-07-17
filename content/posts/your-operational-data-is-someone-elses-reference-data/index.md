@@ -71,7 +71,7 @@ and reference are roles, not properties.** The same dataset plays both. A
 balance change is operational reality inside the account service — it happens
 there, under that team's invariants. The moment it is published and becomes
 available inside the usage service's boundary, it is reference knowledge:
-trusted, imported context for someone else's decisions. Usage events flow the
+governed, imported context for someone else's decisions. Usage events flow the
 other way: they are operational for the usage service, and they become
 reference for billing, forecasting, and the account service's own refill
 logic.
@@ -287,31 +287,6 @@ screened from a projection, explored in an analytical store, and acted on
 authoritatively only through the owner's API — one dataset, three access
 modes, each correct for its decision.
 
-## The role-reversal review
-
-A principle you cannot run in a review is a slogan. Here is the compact
-version — one block to paste into an ADR next to the decision it serves:
-
-```text
-Decision this integration serves:
-Operational reality owned here:
-External knowledge required:
-For each external product:
-    Semantic owner:
-    Admissibility — query / persist / derive / retain:
-    Grain and history depth:
-    Freshness and completeness contract:
-    Corrections, deletions, replay:
-    Query locality / failure locality:
-Authoritative actions that must return to the owner:
-Knowledge this application publishes in return:
-```
-
-The last line is the one reviews forget, and it is the reciprocity this essay
-exists to argue for. The sequel's per-candidate ADR template goes deeper on
-the middle — comparing candidate mechanisms requirement by requirement — but
-this card is enough to make the loop, and its gaps, visible.
-
 ## Whose shoulders, exactly
 
 None of the raw ingredients here are new, and naming their owners makes the
@@ -333,8 +308,8 @@ CQRS: query-shaped derived state apart from the write path is a well-worn
 pattern. **The ownership and governance** are data products, as data mesh
 formulated them.
 
-What none of these foregrounds as a single architecture-review obligation —
-and what this essay argues for — is the *reciprocity*: that every application
+What I want to foreground as a single architecture-review obligation is the
+*reciprocity*: that every application
 is simultaneously a publisher of its operational reality and a consumer of
 others', with a governed refinement step in the middle; that "operational"
 and "reference" name the two ends of one recurring swap; and that an
@@ -383,6 +358,31 @@ intersection of the two is where the interesting questions get answered.*
 You can implement it with a lakehouse, a stream, logical replication, or a
 nightly batch — the architecture review question is whether the loop exists
 and is governed, not which vendor closes it.
+
+## The role-reversal review
+
+A principle you cannot run in a review is a slogan. Here is the compact
+version — one block to paste into an ADR next to the decision it serves:
+
+```text
+Decision this integration serves:
+Operational reality owned here:
+External knowledge required:
+For each external product:
+    Semantic owner:
+    Admissibility — query / persist / derive / retain:
+    Grain and history depth:
+    Freshness and completeness contract:
+    Corrections, deletions, replay:
+    Query locality / failure locality:
+Authoritative actions that must return to the owner:
+Knowledge this application publishes in return:
+```
+
+The last line is the one reviews forget, and it is the reciprocity this essay
+exists to argue for. The sequel's per-candidate ADR template goes deeper on
+the middle — comparing candidate mechanisms requirement by requirement — but
+this card is enough to make the loop, and its gaps, visible.
 
 ## Measuring it
 
