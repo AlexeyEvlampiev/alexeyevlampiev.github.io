@@ -166,18 +166,28 @@ And the requirements are stated before any candidate is scored: evidence at
 most **5 minutes old**, frontier skew at most **60 seconds**, a
 reconstructable historical cut, screening of **all active accounts** nightly
 and on demand — including during provider deploy windows — **12 months** of
-standing and plan history retained, and a two-stage consequence: flagging is
-advisory and reversible via human review; freezing is an authoritative,
-high-consequence state transition that requires owner-side revalidation.
+standing and plan history available as evidence, and a two-stage
+consequence: flagging is advisory and reversible via human review; freezing
+is an authoritative, high-consequence state transition that requires
+owner-side revalidation.
+
+Gate zero runs first, per candidate, against the operations each candidate
+actually needs. The API candidate needs only query permission — granted.
+The projection candidate needs persistence, derivation, and twelve-month
+retention — granted, with row-level entitlement and retention clauses
+written into the product contract. The federation candidate needs query
+entitlements that translate across three separately governed catalogs —
+granted conditionally. All three survive; note that the *decision's* need
+for twelve months of history is a requirement for the dimensions below, not
+a licence for any particular candidate to retain it.
 
 | Dimension | Required here | API / composition | Projection | Federation |
 |---|---|---|---|---|
-| Admissibility | Retain standing & plan history at account grain, 12 months, fraud-review purpose | Admissible (query-only) | Admissible **with** entitlement + retention clauses | Admissible **if** policy translates across sources |
 | Time | Age ≤ 5 min; skew ≤ 60 s; coherent historical cut | Fresh current state; **no historical cut** | Effective-dated history + completeness frontiers | Current reads; **no cross-source cut** |
 | Semantics | Standing states mapped to review taxonomy | Owner's semantics at call time | Owner-mapped per contract; corrections flow | Connector-exposed; mismatches land on consumer |
 | Runtime | Full fan-out screening during provider deploy windows | **Fails** availability at fan-out | Meets — local batch query | Needs every source + engine healthy |
 | Change coupling | Survive upstream schema evolution | Insulated per call shape | Versioned feed, 90-day overlap — on the record | Every source schema in the query surface |
-| Reasoning capacity | Reconstruct standing & plan history across 3 domains | **Requires two new contracts** | Already available | Only if sources expose history |
+| Reasoning capacity | Reconstruct 12 months of standing & plan history across 3 domains | **Requires two new contracts** | Already available | Only if sources expose history |
 | Authority | Freezing must commit against the owner's invariant | Command path exists | Read-only — freeze goes via owner path | Read-only |
 | Consequence & recovery | Flag advisory (human review); freeze authoritative, owner-revalidated | Same for all: flag cheap to correct; freeze dear | Flagging on ≤ 5-min-old data acceptable | Reproducibility needs a captured cut |
 | Lifecycle cost | Recurring, high fan-out, quarterly reshaping | Per-call cost + rate-limit negotiation | Feeds on the existing platform | Per-query engine + egress |
@@ -279,9 +289,10 @@ coherence too, through snapshot tokens, version-bound reads, or
 provider-side composition. The trade is not "API incoherent, projection
 coherent" — it is whether the chosen design *has an explicit coherence
 mechanism*. Most per-call compositions silently have none. And a change feed
-is not that mechanism by itself: CDC streams and vendor change data feeds
-supply incremental delivery and commit ordering — not cross-source
-coherence, permanent history, semantic compatibility, or admissibility.
+is not that mechanism by itself: CDC streams and change data feeds can
+supply incremental delivery and source-order or commit metadata — not
+cross-source coherence, permanent history, semantic compatibility, or
+admissibility.
 
 ## Reasoning capacity
 
@@ -290,16 +301,12 @@ candidate can answer from the data, history, and query contracts already
 available to it — at the required granularity and history depth, without an
 upstream contract change.**
 
-The definition is deliberately neutral across candidates: locality is not
-part of it. It is a property of the available information and contracts,
-measurable on their own terms: which fields and dimensions are present;
-which join keys and identifiers are compatible; how deep the history is,
-and whether past state can be reconstructed; which transformations are
-permitted; and — the operational tell — how many upstream contract changes
-a new question requires. Latency, availability, and cost constrain what is
-*practical*; they live in their own rows. Lead time from question to
-production answer is an observed *consequence* of reasoning capacity and
-change coupling together — worth tracking, not part of the definition.
+The definition is deliberately neutral across candidates — locality is not
+part of it — and measurable: which fields, join keys, and grains are
+present; how deep the history is and whether past state can be
+reconstructed; and, the operational tell, how many upstream contract
+changes a new question requires. Latency, availability, and cost constrain
+what is *practical*; they live in their own rows.
 
 The per-candidate contrast is then precise. A call can make a question
 logically expressible while the composition needed to answer it is
@@ -371,9 +378,8 @@ and closest of all Chris Richardson's
 which weighs ten named forces including runtime *and* design-time coupling —
 a split this essay's dimensions preserve. And Daniel Abadi's
 [PACELC](https://www.cs.umd.edu/~abadi/papers/abadi-pacelc.pdf) is the
-precedent for the whole move: extending a famous framework because it "does
-not constrain any system capabilities during normal operation" — because it
-was missing the dimension that operates all the time.
+precedent for the move itself: extending a famous framework to add the
+dimension that operates all the time.
 
 Reasoning capacity is the dimension I most often find absent.
 [Azure's data guidance](https://learn.microsoft.com/en-us/azure/architecture/microservices/design/data-considerations)
@@ -387,28 +393,17 @@ being first; it depends on that dimension earning a row in your reviews.
 [inside-out architecture](https://martin.kleppmann.com/2015/11/05/database-inside-out-at-oredev.html) ·
 the [unbundled database](https://www.confluent.io/blog/leveraging-power-database-unbundled/) ·
 Denning's [locality principle](https://denninginstitute.com/pjd/PUBS/CACMcols/cacmJul05.pdf) ·
-[Lakebase](https://docs.databricks.com/aws/en/oltp/) synced tables and the
-announced "[LTAP](https://www.databricks.com/company/newsroom/press-releases/databricks-launches-ltap-first-lake-transactionalanalytical)"
-category — every such product pitch is a position on a few of these
-dimensions; none answers semantics, authority, recovery, or the gate for
-you.
+[Lakebase](https://docs.databricks.com/aws/en/oltp/) synced tables — a
+product position on a few of these dimensions; semantics, authority,
+recovery, and the gate remain yours.
 
-## An operational evaluation, and an exercise
+## An exercise you can run today
 
-The honest test of this framework is operational, not causal — adopting
-teams may simply be maturing. Run it anyway: for the next ten integration
-ADRs, record which dimensions were made explicit; when a redesign or
-incident occurs, classify the missing requirement *without looking at* the
-checklist. The framework is useful if omitted dimensions predict the
-surprises, incomplete if failures repeatedly fall outside it. That is a
-prediction, not a finding.
-
-The exercise you can run today is humbler: take your last ten integration
-redesigns and, for each, name the requirement absent from the original
-review. If it maps to a dimension here, the instrument had an explicit place
-where that requirement could have been raised. If it doesn't map to any —
-that is evidence this framework is missing one, and that is precisely what I
-want to hear about.
+Take your last ten integration redesigns and, for each, name the
+requirement absent from the original review. If it maps to a dimension
+here, the instrument had an explicit place where that requirement could
+have been raised. If it doesn't map to any — that is evidence this
+framework is missing one, and that is precisely what I want to hear about.
 
 *This is the second essay in a series on data-first architecture. The
 [first](/posts/your-operational-data-is-someone-elses-reference-data/)

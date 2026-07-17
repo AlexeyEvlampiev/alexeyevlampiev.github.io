@@ -86,11 +86,12 @@ Holding a projection must be *admissible*: some data may be queried but never
 persisted, derived from, or retained, and that gate is checked per product,
 not assumed. Commands stay owner-mediated: anything that changes
 authoritative state goes through the owner's API, where invariants and locks
-live. And projection is a strong default for imported *knowledge*, not a
-universal replacement for calls — a narrow, low-volume read is often better
-as a call, and a federated query can serve cross-domain reads without a
-consumer copy. This essay argues the default; the sequel compares the
-alternatives as equals.
+live. And projection should be a first-class candidate for imported
+*knowledge*, not a universal replacement for calls — a narrow, low-volume
+read is often better as a call, and a federated query can serve cross-domain
+reads without a consumer copy. This essay argues that the candidate is
+systematically under-considered; the sequel compares the alternatives as
+equals.
 
 ![Role reversal: two services above a shared knowledge substrate. The same dataset — account state — appears as amber operational reality inside the account service and as a green local projection inside the usage service; usage and charge facts mirror the pattern in the opposite direction, each side publishing to and projecting from governed data products.](role-reversal.drawio.svg)
 
@@ -236,9 +237,8 @@ Where it says no, nothing below applies to that data.
 
 **Commands do not reverse.** Reserving inventory, committing a payment, any
 action that must be checked against the owner's *current* invariant belongs
-behind the owner's API, where locks and validation live. Role reversal is a
-default for *knowledge* exchange, not a replacement for authoritative
-behavior.
+behind the owner's API, where locks and validation live. Role reversal
+governs *knowledge* exchange, not authoritative behavior.
 
 **Narrow reads are cheaper as calls.** A projection is a pipeline you
 operate. If the question is low-volume, current-state, and shaped exactly
@@ -250,8 +250,7 @@ when questions fan out, need joins, or keep changing.
 evidence from owner-controlled sources at query time, with no consumer copy
 to maintain — occupying different freshness, coupling, and failure-domain
 positions, not strictly worse ones. The sequel treats calls, projections,
-and federated queries as equal candidates; this essay's claim is only that
-the projection option is systematically under-considered.
+and federated queries as equal candidates.
 
 **Storage and pipeline duplication.** Projections usually mean copied data
 and operated pipelines. The systematic review of the data-mesh literature ([ACM
@@ -371,11 +370,11 @@ turn offer their own
 [change data feed](https://docs.delta.io/delta-change-data-feed/) for
 incremental propagation between table versions. These feeds solve a real
 part of publication — row-level change capture without building an external
-CDC stack. What they do not supply is anything the contract above states:
-semantic ownership, effective-time meaning, entitlement, retention,
-completeness, correction policy, the consumer's projection. **A feed moves
-changes; the product contract is what makes those changes usable as
-knowledge.**
+CDC stack. What they do not define by themselves is the product contract
+above: semantic ownership, effective-time meaning, entitlement, required
+retention, completeness, correction policy, or the consumer's projection.
+**A feed moves changes; the product contract is what makes those changes
+usable as knowledge.**
 
 And a product feature is not a principle. The principle is vendor-neutral
 and older than any of these products: *applications publish their reality;
@@ -406,7 +405,8 @@ happening in your organization; it is just happening without a contract.
 Stop asking only "what API does this system expose?" Ask: *what reality does
 this application own, what does it publish, whose published reality does it
 project — and can it join the two locally?* When the answer to the last part
-is yes, integration stops being a call graph and starts being an ecosystem.
+is yes, integration need not remain a call graph: it becomes an ecosystem of
+published knowledge and owner-mediated action.
 
 *This is the first essay in a series on data-first architecture — how
 applications inherit knowledge, act on local reality, and return what they
