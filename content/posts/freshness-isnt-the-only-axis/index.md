@@ -149,7 +149,7 @@ against it. (A complete, copyable ADR template appears at the end.)
 | **Consequence & recovery** | If stale, incomplete, or incoherent knowledge produces a wrong decision, what does it cost, what detects it, and what corrects it? | Revalidate-before-acting, compensation, human review; whether the action is advisory or an authoritative external transition |
 | **Lifecycle cost** | What is the total lifecycle cost of this candidate, honestly counted? | Calls, egress, storage, pipelines, replay and divergence repair, observability, on-call |
 
-![Freshness is one requirement — the eight review dimensions: time, semantics, runtime, change coupling, reasoning capacity, authority, consequence & recovery, lifecycle cost, behind the per-candidate gate-zero admissibility question.](social-card.drawio.png)
+![Freshness is one requirement — the eight review dimensions: time, semantics, runtime, change coupling, reasoning capacity, authority, consequence & recovery, lifecycle cost, behind the per-candidate gate-zero admissibility question.](social-card.drawio.svg)
 
 And one instruction for using the table: **the dimensions are not votes.**
 A candidate either meets a requirement, meets it with a named control, fails
@@ -335,7 +335,7 @@ The diagram shows the **projection case** — the mechanism by which a
 projection concentrates reasoning capacity into one computational boundary
 where knowledge and reality can be computed together:
 
-![The local intersection — the projection case: reference knowledge (green, left — other domains' published state, shared facts, classifications, aggregates, policies) and operational reality (amber, right — transactions, events, measurements, workflow state) both flow into a central box — the local intersection, the consumer's reasoning capacity — where joins, aggregation, inference, screening, optimization and prediction happen, inside one computational boundary.](local-intersection.drawio.png)
+![The local intersection — the projection case: reference knowledge (green, left — other domains' published state, shared facts, classifications, aggregates, policies) and operational reality (amber, right — transactions, events, measurements, workflow state) both flow into a central box — the local intersection, the consumer's reasoning capacity — where joins, aggregation, inference, screening, optimization and prediction happen, inside one computational boundary.](local-intersection.drawio.svg)
 
 ## The instrument, ready to copy
 
