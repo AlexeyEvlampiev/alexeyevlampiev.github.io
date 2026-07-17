@@ -445,8 +445,9 @@ framework is missing one, and that is precisely what I want to hear about.
 *This is the second essay in a series on data-first architecture. The
 [first](/posts/your-operational-data-is-someone-elses-reference-data/)
 introduced role reversal — publish your reality, project theirs, join
-locally. The next one asks what happens when the consumer doing the
-reasoning is not a team but an AI agent.*
+locally. The next essays extend the loop: to composite, purpose-synthesized
+products, to models as executable knowledge — and then to AI agents as
+consumers of governed, purpose-built context.*
 
 Which dimension is missing from your architecture-review template — and what
 did its absence cost you? Real stories, especially ones where a projection

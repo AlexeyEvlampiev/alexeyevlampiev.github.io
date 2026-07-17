@@ -95,8 +95,9 @@ First, holding a projection must be *admissible*: some data may be queried
 but never persisted, derived from, or retained, and that gate is checked per
 product, not assumed.
 
-Second, commands stay owner-mediated: anything that changes authoritative
-state goes through the owner's API, where invariants and locks live.
+Second, authoritative state changes remain owner-mediated unless that
+authority has been explicitly delegated: they go through the owner's API,
+where invariants and locks live.
 
 Within those boundaries, projection should be a first-class candidate for
 imported *knowledge*, not a universal replacement for calls — a narrow,
@@ -106,6 +107,12 @@ encounter, projection is routinely the under-considered candidate; the
 sequel compares it with calls and federation as equals.
 
 ![Role reversal: two services above a shared knowledge substrate. The same dataset — account state — appears as amber operational reality inside the account service and as a green local projection inside the usage service; usage and charge facts mirror the pattern in the opposite direction, each side publishing to and projecting from governed data products.](role-reversal.drawio.svg)
+
+Role reversal between two applications is the simplest instance of a larger
+cycle. A governed product may also be synthesized from several domains, and
+what returns to an operational boundary may be a classification, an
+aggregate, an index, or a model rather than a copy of any producer's table.
+This essay stays with projections because they make the principle concrete.
 
 ## The mechanism: publish, refine, project, join locally
 
@@ -385,13 +392,13 @@ treats them as one design obligation — and makes it reviewable.
 ## Why this is surfacing now
 
 Data mesh — one of the most influential data-architecture formulations of
-the past decade — knew about the return path and chose not to center it. Zhamak
-Dehghani's [2020 formulation](https://martinfowler.com/articles/data-mesh-principles.html)
+the past decade — recognized the return path but intentionally scoped its
+architecture around the analytical plane. Zhamak Dehghani's
+[2020 formulation](https://martinfowler.com/articles/data-mesh-principles.html)
 names the two-way flow as a familiar pain ("flowing data from operational
 data plane to the analytical plane, and back to the operational plane")
-and then recommends the split anyway: "for now, I suggest we keep their
-concerns separate." Implementations followed, tending to stop at lakes,
-models, and dashboards.
+and recommends keeping the concerns separate "for now." Implementations
+followed, tending to stop at lakes, models, and dashboards.
 
 By
 [January 2025](https://www.nextdata.com/our-pov/the-data-mesh-challenge-how-to-close-the-gap-between-inception-and-operation-at-scale),
@@ -438,7 +445,9 @@ applications inherit knowledge, act on local reality, and return what they
 learn. The [next one](/posts/freshness-isnt-the-only-axis/) turns the
 decision at the center of this design into an instrument: eight dimensions
 of evaluation for choosing among API calls, projections, and federated
-queries.*
+queries. Later essays extend the loop to composite, purpose-synthesized
+products, models as executable knowledge, and the return of decisions and
+outcomes.*
 
 Where has a local projection saved you — and where did its staleness cost
 more than the API dependency it replaced? I am especially interested in the
