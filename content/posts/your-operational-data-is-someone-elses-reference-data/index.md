@@ -13,15 +13,26 @@ ShowToc: true
 TocOpen: false
 ---
 
-<!-- STATUS: draft R1 (2026-07-17) — second-opinion review applied; all its factual
-     claims verified against primary sources (Fowler ECST, Dehghani 2020 "and back",
-     LTAP "coming soon", Nextdata URL + quotes). TODO before publication:
-     - re-verify Lakebase/LTAP feature status at publication date
-     - social card DONE 2026-07-17 (social-card.drawio.png 1198x628, cover.hidden,
-       visually verified at thumbnail scale)
-     - set final date + draft: false at publication; decide series taxonomy AFTER
-       naming gate (AGP-7)
-     - diagram gate: DONE — role-reversal.drawio(.png), visually verified -->
+<!-- STATUS: draft R4 (2026-07-17) — parity revision vs essay 2, from external
+     critique (all line-ref claims verified against R3 text before applying):
+     admissibility boundary stated up front; contract upgraded to effective-dated
+     intervals + temporally correct query (backtest claim now supportable, device
+     type kept as the deliberate reasoning-capacity counterexample); precise
+     dependency language (request-path independent / asynchronously coupled /
+     semantically bound; degraded independence under a max data age); scope +
+     alternatives early (calls for narrow reads, federation, shared governed
+     storage); "refine" transformation ownership split; query-vs-failure locality
+     split; role-reversal review card added; lineage/vendor compressed (~40% off
+     vendor chronology; Lakebase freshness-floor + preview details dropped =
+     less publication-maintenance surface); hypotheses → measures w/ named
+     confounder + retrospective exercise; series tease aligned to essay 2
+     (eight requirements, calls/projections/federated queries).
+     Prior R1–R3 verification holds (Fowler ECST, Dehghani 2020 "and back",
+     LTAP "coming soon", Nextdata quotes; social card + diagram gates DONE).
+     TODO before publication:
+     - re-verify Lakebase/LTAP status at publication date
+     - set final date + draft: false; series taxonomy after naming gate (AGP-7)
+     - keep tease consistent with essay 2 final title/labels -->
 
 Somewhere in your organization, a team is building a usage service — metering
 API calls, clicks, deliveries, kilowatt-hours, whatever your business counts.
@@ -43,20 +54,23 @@ questions you are allowed to ask; anything unanticipated becomes a
 cross-team negotiation. Meanwhile your decision path now includes their
 deployment schedule, their rate limits, and their p99.
 
-The root problem is not the API. It is a category error about the data: we
-treat "their data" as something we may only *ask about*, never *hold*. That
-error has a name worth introducing, because once you see it, you see it
-everywhere.
+The root problem is not the API. It is an assumption about the data: we treat
+"their data" as something we may only *ask about*, never *hold*. Sometimes
+policy requires exactly that — privacy, residency, erasure, or tenant-isolation
+obligations can forbid holding a copy, and no architecture argument overrides
+them. But when holding a governed copy *is* admissible, treating per-call
+access as the only legitimate model is a costly design assumption. That
+assumption is worth a name, because once you see it, you see it everywhere.
 
-## Every application acts on two datasets
+## Every cross-domain decision combines two roles of data
 
-Look inside any non-trivial operational application and you find two classes
-of data with different origins and different lifecycles.
+Look inside any consequential cross-domain decision and you find two kinds of
+data with different origins and different lifecycles.
 
-**Operational reality** is what the application itself observes and produces:
-its transactions, events, measurements, state transitions, decisions. The
-usage service's operational reality is the stream of usage events. This data
-is born here; this application is its source of truth.
+**Operational reality** is what the deciding application itself observes and
+produces: its transactions, events, measurements, state transitions,
+decisions. The usage service's operational reality is the stream of usage
+events. This data is born here; this application is its source of truth.
 
 **Reference knowledge** is everything the application imports in order to
 make sense of its own observations. I am using the term deliberately more
@@ -68,19 +82,42 @@ balance, inventory position, device status), historical aggregates, and
 policy tables. The usage service cannot price a single event without
 reference knowledge it does not own.
 
+Two objections to the term are worth answering before it does any work.
+First: an account balance is volatile operational state, nothing like a
+currency-code table. True — but "reference" here describes the *consumer's
+use* of the data, not its update frequency or the producer's ontology. The
+usage service reads it, never writes it, and consults it only to interpret
+its own observations — exactly how it treats classic reference data. Second:
+"knowledge" can sound validated and final, while a projection may carry
+provisional observations still subject to correction. Also true — which is
+why the contract below spends clauses on corrections and tombstones instead
+of pretending finality.
+
 Here is the observation that carries the rest of this essay: **operational
 and reference are roles, not properties.** The same dataset plays both. A
 balance change is operational reality inside the account service — it happens
 there, under that team's invariants. The moment it is published and becomes
-available inside the usage service's boundary, it is reference knowledge: trusted, imported
-context for someone else's decisions. Usage events flow the other way: they
-are operational for the usage service, and they become reference for billing,
-forecasting, and the account service's own refill logic.
+available inside the usage service's boundary, it is reference knowledge:
+trusted, imported context for someone else's decisions. Usage events flow the
+other way: they are operational for the usage service, and they become
+reference for billing, forecasting, and the account service's own refill
+logic.
 
 Call this **role reversal**. It is the mechanism by which independent
 applications become an ecosystem instead of a call graph. The ingredients
 are old — the lineage section below names their owners — but the reciprocal
 obligation they add up to is worth stating as a principle in its own right.
+
+And the principle needs its boundary attached before any advocacy.
+Holding a projection must be *admissible*: some data may be queried but never
+persisted, derived from, or retained, and that gate is checked per product,
+not assumed. Commands stay owner-mediated: anything that changes
+authoritative state goes through the owner's API, where invariants and locks
+live. And projection is a strong default for imported *knowledge*, not a
+universal replacement for calls — a narrow, low-volume read is often better
+as a call, and a federated query or a governed view over shared storage can
+provide query locality without consumer-owned bytes. This essay argues the
+default; the sequel compares the alternatives as equals.
 
 ![Role reversal: two services above a shared knowledge substrate. The same dataset — account state — appears as amber operational reality inside the account service and as a green local projection inside the usage service; usage and charge facts mirror the pattern in the opposite direction, each side publishing to and projecting from governed data products.](role-reversal.drawio.svg)
 
@@ -98,29 +135,39 @@ analytics team.
 **2. Refine and govern.** The stream becomes a governed product with explicit
 semantics. The division of labor matters: the platform supplies the
 mechanism — ingestion, normalization, policy enforcement, delivery — while
-the *producing domain owns the semantics*: what the fields mean, what the
-keys are, what a correction implies. Concretely, a product definition looks
-like this:
+the *producing domain owns the semantics*. It helps to name which
+transformations are whose: mechanical work (format, transport, policy
+enforcement) is platform-owned; anything that changes meaning (unit
+conversion, key mapping, null semantics, temporal interpretation) ships only
+with the producer's approval, exactly like a schema change; and a
+consumer-specific derivation is a *new* product with its own owner, not a
+mutation of this one. Without that split, "shared platform" quietly becomes a
+central integration team that owns everyone's semantics. Concretely, a
+product definition looks like this:
 
 ```yaml
 product: account-state
 owner: account-control domain        # owns semantics; platform enforces policy
 schema: v3 (additive changes only; breaking change = new major, 90-day overlap)
-keys: [account_id]
-attributes: [account_state, balance_remaining, plan_id, as_of]
+keys: [account_id, valid_from]
+attributes: [account_state, plan_id, balance_remaining, valid_from, valid_to, as_of]
+history: "effective-dated — every state or plan change closes an interval and opens
+          a new one; 13 months retained"
 freshness: "≤ 60 seconds via change feed; as_of carries observation time"
-corrections: "late corrections republished under the same key; consumers upsert"
+corrections: "republished under the same key and interval; consumers upsert"
 deletes: "tombstone records; consumers must process removals, not just upserts"
-entitlement: "row-level — a consumer sees only its own tenant's accounts"
+entitlement: "row-level — a consumer sees only its own tenant's accounts;
+              persistence and retention permitted for billing purposes"
 ```
 
-Note the `as_of` column and the freshness clause: staleness stops being an
-ambient hazard and becomes a stated, contracted property that a reviewer can
-accept or reject. A production-grade contract carries more than fits in an
-essay — ordering and idempotency guarantees, bootstrap and replay procedure,
-event time versus ingestion time, a reconciliation SLO. The point is that
-these are *contract obligations with an owner*, not tribal knowledge
-discovered during incidents.
+A sibling `price-plan` product publishes effective-dated unit prices under
+the same conventions. Note the `history` and `freshness` clauses: staleness
+and history depth stop being ambient hazards and become stated, contracted
+properties a reviewer can accept or reject. A production-grade contract
+carries more than fits in an essay — ordering and idempotency guarantees,
+bootstrap and replay procedure, event time versus ingestion time, a
+reconciliation SLO. The point is that these are *contract obligations with an
+owner*, not tribal knowledge discovered during incidents.
 
 **3. Project.** The usage service imports the product into its own boundary
 as a **projection** — a consumer-local read model it can query, index, and
@@ -128,47 +175,108 @@ join, while the account service remains the only writer of the underlying
 truth. A projection is usually a physical copy in the consumer's database,
 but that is an implementation choice, not the definition; a governed view
 over shared storage can play the same role. What defines a projection is
-locality of *query*, not locality of *bytes*.
+locality of *query*, not locality of *bytes* — but "local" is several
+properties, not one. A shared-storage view gives you local query semantics
+and a local composition boundary without giving you a separate failure
+domain: when the shared storage is down, so is your "local" read. The review
+card at the end of this essay asks about query locality and failure locality
+separately, because designs that provide the first while implying the second
+are where outage surprises come from.
 
 **4. Join locally.** And this is where the payoff lives. The
 week-to-exhaustion question that had no endpoint becomes one query inside the
 usage service's own boundary:
 
 ```sql
-SELECT a.account_id,
-       a.balance_remaining,
+SELECT u.account_id,
+       cur.balance_remaining,
        sum(u.units * p.unit_price) / 30.0          AS daily_burn,
-       a.balance_remaining
+       cur.balance_remaining
          / nullif(sum(u.units * p.unit_price) / 30.0, 0) AS days_left
-FROM   ref_account_state a                      -- projected: owned elsewhere
-JOIN   ref_price_plan    p USING (plan_id)      -- projected: owned elsewhere
-JOIN   usage_event       u USING (account_id)   -- operational: owned here
+FROM   usage_event       u                      -- operational: owned here
+JOIN   ref_account_state s                      -- projected: effective-dated
+  ON   s.account_id = u.account_id
+ AND   u.recorded_at >= s.valid_from
+ AND   u.recorded_at <  coalesce(s.valid_to, 'infinity')
+JOIN   ref_price_plan    p                      -- projected: effective-dated
+  ON   p.plan_id = s.plan_id
+ AND   u.recorded_at >= p.valid_from
+ AND   u.recorded_at <  coalesce(p.valid_to, 'infinity')
+JOIN   ref_account_state cur                    -- current interval: the balance
+  ON   cur.account_id = u.account_id
+ AND   cur.valid_to IS NULL
 WHERE  u.recorded_at >= now() - interval '30 days'
-  AND  a.account_state = 'active'
-GROUP  BY a.account_id, a.balance_remaining
+  AND  s.account_state = 'active'
+GROUP  BY u.account_id, cur.balance_remaining
 HAVING sum(u.units * p.unit_price) > 0
 ORDER  BY days_left;
 ```
 
+Notice what made this correct: the intervals. Each usage event is priced at
+the plan and unit price in effect *when it happened*, and usage during
+suspended intervals never enters the burn rate. With a current-state-only
+projection, the same query silently reprices a month of history at today's
+plan — fresher data producing a wronger answer. One simplification survives
+for print: the fixed 30-day divisor overstates the runway of accounts younger
+than the window; a production report divides by observed days.
+
+The boundary is just as visible as the capability. Segment burn by plan,
+recompute last month's charges under a proposed price list, alert when a
+state change coincides with a usage spike — all local queries, because the
+contract carries effective-dated states and prices. Correlate burn with
+*device type*? Not a local question: no product shown here publishes device
+attributes. New questions are possible exactly within the projection's
+granularity, history depth, semantics, entitlements, and retained fields —
+and no further. The sequel gives that boundary a name, *reasoning capacity*,
+and makes it one of eight requirements for comparing integration candidates.
+
 To be precise about what was gained: coordination does not disappear —
 schema, semantics, entitlement, and freshness still require agreement at the
-contract boundary. What disappears is the *per-question* negotiation. Every new
-question compatible with the published product — segment by plan, correlate
-with device type, backtest a pricing change — is a local query, not another
-endpoint, another meeting, another release.
+contract boundary, and a genuinely new *use* of the data may still need
+purpose or retention approval. What changes is this: **a new question
+compatible with the published product no longer requires an upstream
+interface change or a producer release.** That is a narrower claim than
+"negotiation disappears," and it is the one you can measure.
 
 Then the loop closes. The usage service publishes its computed usage and
-charge facts as its own product. Inside the account service's boundary they
+charge facts as its own product; inside the account service's boundary they
 arrive as reference knowledge feeding balance dynamics and refill signals.
-The two services are *runtime-independent but semantically coupled*: neither
-waits on the other to serve a request, while both are bound by the contracts
-they publish. That is role reversal completing its cycle.
+The two services are *request-path independent, asynchronously coupled, and
+semantically bound by the published contract*. Neither waits on the other to
+serve a request — but the consumer still depends on the producer publishing
+changes, on the delivery pipeline, and on its projection staying within the
+contracted freshness. During a producer outage, local reads continue and
+grow older; that is degraded independence, bounded by the maximum data age
+the decision tolerates, not absolute independence. The bounded form is still
+worth a great deal — and it is the honest form.
 
-## What it costs, and where it does not apply
+## Where it does not apply, and what it costs
 
-This design has real costs, and the literature has already documented them —
-which is useful, because it means they are known quantities rather than
-surprises.
+**Some projections are inadmissible.** Before any trade-off analysis there is
+a gate, checked per product: may this consumer *query* the data, *persist*
+it, *derive* from it, *retain* it — and for how long? Privacy, residency,
+erasure, and tenant isolation answer those questions before architecture
+does. The contract's entitlement clause is where the answer lives; where it
+says no, the rest of this essay does not apply to that data.
+
+**Commands do not reverse.** Reserving inventory, committing a payment, any
+action that must be checked against the owner's *current* invariant belongs
+behind the owner's API, where locks and validation live. Role reversal is a
+default for *knowledge* exchange, not a replacement for authoritative
+behavior.
+
+**Narrow reads are cheaper as calls.** A projection is a pipeline you
+operate. If the question is low-volume, current-state, and shaped exactly
+like an existing endpoint — one plan lookup at signup — a call costs less
+than a contract, a feed, and a reconciliation job. Projection earns its cost
+when questions fan out, need joins, or keep changing.
+
+**Federation is a real alternative.** A federated query engine or a governed
+view over shared storage can serve cross-domain joins without consumer-owned
+bytes — occupying different freshness, coupling, and failure-domain positions,
+not strictly worse ones. The sequel treats calls, projections, and federated
+queries as equal candidates; this essay's claim is only that the projection
+option is systematically under-considered.
 
 **Storage and pipeline duplication.** Projections usually mean copied data
 and operated pipelines. The systematic review of the data-mesh literature ([ACM
@@ -184,13 +292,13 @@ exist precisely because late, corrected, and deleted observations *will*
 arrive. Systems that pretend otherwise still have the inconsistency — they
 just discover it in an incident review instead of a design review.
 
-**Commands do not reverse.** Reserving inventory, committing a payment, any
-action that must be checked against the owner's *current* invariant belongs
-behind the owner's API, where locks and validation live. Role reversal is a
-default for *knowledge* exchange, not a replacement for authoritative
-behavior.
+**The mechanism assumes a platform.** Ingestion, replay, tombstone delivery,
+entitlement enforcement — where no shared platform provides them, every
+consuming team builds its own, and the duplication cost above compounds.
+Role reversal without platform maturity is a portfolio of hand-rolled
+pipelines.
 
-That boundary can be stated as a decision rule you can apply in tomorrow's
+The boundary can be compressed into a decision rule for tomorrow's
 architecture review:
 
 - **Reach for a projection** when questions have high fan-out or need joins,
@@ -200,9 +308,35 @@ architecture review:
   state, must validate against a current invariant, or cannot tolerate stale
   authorization or availability information.
 
-The full trade space behind that rule — freshness, coupling, and what I call
-reasoning capacity — deserves its own treatment, and it will get its own
-essay.
+And expect the boundary to move with the stakes: the same account data may be
+screened from a projection, explored in an analytical store, and acted on
+authoritatively only through the owner's API — one dataset, three access
+modes, each correct for its decision.
+
+## The role-reversal review
+
+A principle you cannot run in a review is a slogan. Here is the compact
+version — one block to paste into an ADR next to the decision it serves:
+
+```text
+Decision this integration serves:
+Operational reality owned here:
+External knowledge required:
+For each external product:
+    Semantic owner:
+    Admissibility — query / persist / derive / retain:
+    Grain and history depth:
+    Freshness and completeness contract:
+    Corrections, deletions, replay:
+    Query locality / failure locality:
+Authoritative actions that must return to the owner:
+Knowledge this application publishes in return:
+```
+
+The last line is the one reviews forget, and it is the reciprocity this essay
+exists to argue for. The sequel's per-candidate ADR template goes deeper on
+the middle — comparing candidate mechanisms requirement by requirement — but
+this card is enough to make the loop, and its gaps, visible.
 
 ## Whose shoulders, exactly
 
@@ -215,30 +349,26 @@ Data on the Inside"](https://www.cidrdb.org/cidr2005/papers/P12.pdf) (CIDR
 different from data inside one: unlocked, uncertain, and stale — "The
 contents of a message are always from the past!" — and described *reference
 data* with exactly one publishing service per dataset, consumed as versioned
-snapshots that are deliberately, admittedly out of date. Any data you receive
-from another system is from the past; the only choice is how far past, and
-whether that bound is explicit.
-
-**The movement** is event-carried state transfer. Martin Fowler's
+snapshots that are deliberately, admittedly out of date. **The movement** is
+event-carried state transfer: Martin Fowler's
 [2017 taxonomy of event-driven patterns](https://martinfowler.com/articles/201701-event-driven.html)
-describes recipients updating their own copy of another system's data "so
+describes recipients maintaining their own copy of another system's data "so
 that it never needs to talk to the main customer system in order to do its
-work" — with the same trade-offs this essay carries: resilience and latency
-gained, copies and receiver complexity paid. **The read model** is CQRS:
-maintaining query-shaped derived state apart from the write path is a
-well-worn pattern. **The ownership and governance** are data products, as
-data mesh formulated them.
+work" — with the same trade-offs this essay carries. **The read model** is
+CQRS: query-shaped derived state apart from the write path is a well-worn
+pattern. **The ownership and governance** are data products, as data mesh
+formulated them.
 
 What none of these foregrounds as a single architecture-review obligation —
-and what this essay argues for — is the
-*reciprocity*: that every application is simultaneously a publisher
-of its operational reality and a consumer of others', with a governed
-refinement step in the middle; that "operational" and "reference" name the
-two ends of one recurring swap; and that an architecture review should ask
-for the completeness of that loop the way it asks for a threat model.
-Event-carried state transfer explains the movement, CQRS the read model,
-Helland the temporal semantics, data products the ownership. Role reversal
-treats them as one design obligation — and makes it reviewable.
+and what this essay argues for — is the *reciprocity*: that every application
+is simultaneously a publisher of its operational reality and a consumer of
+others', with a governed refinement step in the middle; that "operational"
+and "reference" name the two ends of one recurring swap; and that an
+architecture review should ask for the completeness of that loop the way it
+asks for a threat model. Event-carried state transfer explains the movement,
+CQRS the read model, Helland the temporal semantics, data products the
+ownership. Role reversal treats them as one design obligation — and makes it
+reviewable.
 
 ## Why this is surfacing now
 
@@ -248,54 +378,64 @@ Dehghani's [2020 formulation](https://martinfowler.com/articles/data-mesh-princi
 names the two-way flow as a familiar pain ("flowing data from operational
 data plane to the analytical plane, and back to the operational plane")
 and then recommends the split anyway: "for now, I suggest we keep their
-concerns separate." The canonical model foregrounded analytical products and
-left operational re-entry underspecified — and implementations followed,
-tending to stop at lakes, models, and dashboards. By
+concerns separate." Implementations followed, tending to stop at lakes,
+models, and dashboards. By
 [January 2025](https://www.nextdata.com/our-pov/the-data-mesh-challenge-how-to-close-the-gap-between-inception-and-operation-at-scale),
 Dehghani was describing data mesh as "a closed loop between operational and
 analytical systems" while conceding that "a very few organizations have been
 able to implement this closed loop." The loop was the intent; the mechanism
 for operational re-entry remained underspecified.
 
-The vendors are moving to supply the mechanism. In February 2026, Databricks
-made [Lakebase](https://docs.databricks.com/aws/en/oltp/) generally
-available: a managed Postgres inside the lakehouse, with governed synced
-tables flowing analytics-to-operational (freshness floor of about fifteen
-seconds — low-latency reads, not real-time data) and change capture flowing
-back (in public preview at the time of writing). In June, the company
-[announced "LTAP"](https://www.databricks.com/company/newsroom/press-releases/databricks-launches-ltap-first-lake-transactionalanalytical)
-— "a new data processing architecture that unifies transactions, analytics,
-streaming, and operational data on a single copy of storage in the lake" —
-as *coming soon*, category claim first, product second. Shipping features
-and announced architecture deserve different verbs; both point the same
-direction: the role-reversal loop is being productized.
+The vendors are now moving to supply that mechanism. Databricks made
+[Lakebase](https://docs.databricks.com/aws/en/oltp/) generally available in
+February 2026 — a managed Postgres inside the lakehouse, with governed synced
+tables flowing analytics-to-operational and change capture flowing back — and
+has [announced "LTAP"](https://www.databricks.com/company/newsroom/press-releases/databricks-launches-ltap-first-lake-transactionalanalytical),
+an architecture unifying "transactions, analytics, streaming, and operational
+data on a single copy of storage in the lake," as *coming soon*. Shipping
+features and announced architecture deserve different verbs; both point the
+same direction: the role-reversal loop is being productized.
 
-A product feature, however, is not a principle. Lakebase gives one platform's
-mechanism for the projection step. The principle is vendor-neutral and older
-than any of these products: *applications publish their reality; refined,
-governed knowledge returns to where decisions are made; the local
-intersection of the two is where the interesting questions get answered.*
-You can implement it with a lakehouse, a stream, logical replication, or a
-nightly batch — the architecture review question is whether the loop exists
-and is governed, not which vendor closes it.
+A product feature, however, is not a principle. The principle is
+vendor-neutral and older than any of these products: *applications publish
+their reality; refined, governed knowledge returns to where decisions are
+made; the local intersection of the two is where the interesting questions
+get answered.* You can implement it with a lakehouse, a stream, logical
+replication, or a nightly batch — the architecture review question is whether
+the loop exists and is governed, not which vendor closes it.
 
-## Three hypotheses
+## Measuring it
 
-Principles should pay rent in falsifiable claims. Here are three, with the
-measurements that would falsify them:
+Principles should pay rent in measurement, and the honest version names its
+confounders. If role reversal is doing real work in your organization, these
+numbers should move:
 
-1. **Lead time.** For cross-domain questions requiring joins or unanticipated
-   analysis, teams with governed projections will show shorter lead time
-   from question to shipped answer than teams composing synchronous APIs —
-   measure the elapsed time and the number of cross-team changes required
-   per new question.
-2. **Availability.** Consumers reading projections will retain read
-   availability during a provider outage; consumers on synchronous calls
-   will not — measure consumer error rates during provider incidents.
-3. **Failure class.** Making freshness contractual converts a class of
-   incidents into design decisions — count incidents caused by stale
-   projections versus incidents caused by unavailable or rate-limited
-   dependencies, before and after.
+- **Producer-side changes per new cross-domain question.** Count the endpoint
+  additions, bulk-export requests, and producer releases each new question
+  required, before and after governed projections. This is the essay's
+  central claim made countable.
+- **Decision-path availability under a declared maximum data age.** During
+  producer incidents, what fraction of consumer decisions could still be
+  served *within the staleness bound each decision tolerates*? The
+  unqualified claim — "projections survive outages" — is nearly definitional;
+  the qualified version can fail, which is what makes it worth measuring.
+- **Divergence detection and repair.** Projection divergence incidents per
+  million applied changes, and time to detect and reconcile a missed
+  correction or deletion. If you cannot produce this number, the
+  reconciliation job from the cost section does not exist yet.
+
+And the confounder, stated plainly: teams with mature data platforms are more
+likely both to run governed projections and to ship quickly, so a raw
+lead-time comparison across teams flatters the projection. Compare within a
+team across time, or do not compare at all.
+
+If the measurement infrastructure is some distance away, start with a
+retrospective instead. Take the last ten cross-domain questions your team
+answered. For each, record where the answer actually came from — a new
+endpoint, a bulk export, an undocumented extract, a local join — and how many
+producer-side changes it took. If undocumented extracts appear on the list,
+role reversal is already happening in your organization; it is just happening
+without a contract.
 
 ## The one-line version
 
@@ -306,8 +446,9 @@ is yes, integration stops being a call graph and starts being an ecosystem.
 
 *This is the first essay in a series on data-first architecture — how
 applications inherit knowledge, act on local reality, and return what they
-learn. The next one takes the trade at the center of this design — freshness,
-coupling, and reasoning capacity — and makes it explicit.*
+learn. The next one turns the decision at the center of this design into an
+instrument: eight requirements for choosing among API calls, projections, and
+federated queries.*
 
 Where has a local projection saved you — and where did its staleness cost
 more than the API dependency it replaced? I am especially interested in the
