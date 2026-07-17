@@ -14,8 +14,8 @@ taxonomies:
 
 params:
   author: "Alexey Evlampiev"
-  description: "Technical blog on PostgreSQL internals, serverless database architecture, and deployment engineering by Alexey Evlampiev."
-  keywords: ["PostgreSQL", "Database Architecture", "Serverless", "Databricks", "DevOps"]
+  description: "Essays and technical writing by Alexey Evlampiev on data architecture, PostgreSQL, deployment engineering, and the systems that AI agents act in."
+  keywords: ["PostgreSQL", "Data Architecture", "Database Architecture", "Software Architecture", "AI Agents", "Serverless", "Databricks", "DevOps"]
   env: production
   defaultTheme: auto
   ShowReadingTime: true
@@ -30,8 +30,9 @@ params:
     Title: "Alexey Evlampiev"
     Content: >-
       Data Platform Architect · Amsterdam.
-      Writing about PostgreSQL internals, ephemeral compute,
-      and the deployment assumptions that serverless architecture breaks.
+      Writing about data platforms and PostgreSQL, the architecture of
+      systems that share knowledge instead of reconstructing it over APIs,
+      and where AI agents fit inside deterministic boundaries.
 
   socialIcons:
     - name: github
@@ -83,6 +84,10 @@ menu:
       name: Search
       url: /search/
       weight: 25
+    - identifier: writing
+      name: Writing
+      url: /writing/
+      weight: 27
     - identifier: about
       name: About
       url: /about/
