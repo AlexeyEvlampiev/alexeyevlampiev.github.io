@@ -1,0 +1,33 @@
+{{- with .cxt -}}
+{{- if and .Params.cover.image (not $.isHidden) -}}
+<figure class="entry-cover">
+  {{- $loading := cond $.IsSingle "eager" "lazy" -}}
+  {{- $alt := (.Params.cover.alt | default .Params.cover.caption | plainify) -}}
+  {{- $cover := or ((.Resources.ByType "image").GetMatch (printf "*%s*" .Params.cover.image)) ((resources.ByType "image").GetMatch (printf "*%s*" .Params.cover.image)) -}}
+  {{- if and $cover (in (slice "jpg" "jpeg" "png" "webp") $cover.MediaType.SubType) -}}
+    {{- $srcset := slice -}}
+    {{- range $width := (slice 360 480 720 1080) -}}
+      {{- if ge $cover.Width $width -}}
+        {{- $spec := cond hugo.IsExtended (printf "%dx webp q82" $width) (printf "%dx" $width) -}}
+        {{- $variant := $cover.Resize $spec -}}
+        {{- $srcset = $srcset | append (printf "%s %dw" $variant.RelPermalink $width) -}}
+      {{- end -}}
+    {{- end -}}
+    {{- $displayWidth := cond (gt $cover.Width 1080) 1080 $cover.Width -}}
+    {{- $displaySpec := cond hugo.IsExtended (printf "%dx webp q82" $displayWidth) (printf "%dx" $displayWidth) -}}
+    {{- $display := $cover.Resize $displaySpec -}}
+    {{- $srcset = $srcset | append (printf "%s %dw" $display.RelPermalink $displayWidth) -}}
+    <img loading="{{ $loading }}" decoding="async"
+         src="{{ $display.RelPermalink }}"
+         srcset="{{ delimit ($srcset | uniq) ", " }}"
+         sizes="(min-width: 868px) 300px, calc(100vw - 48px)"
+         width="{{ $cover.Width }}" height="{{ $cover.Height }}" alt="{{ $alt }}">
+  {{- else -}}
+    <img loading="{{ $loading }}" decoding="async" src="{{ .Params.cover.image | absURL }}" alt="{{ $alt }}">
+  {{- end -}}
+  {{- if $.IsSingle -}}
+    {{- with .Params.cover.caption }}<figcaption>{{ . | markdownify }}</figcaption>{{ end -}}
+  {{- end -}}
+</figure>
+{{- end -}}
+{{- end -}}

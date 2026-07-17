@@ -4,6 +4,7 @@ layout: "single"
 ShowToc: false
 ShowBreadCrumbs: false
 summary: "Everything I've published, in one place — essays on this site and articles on the pgmi project blog."
+description: "A complete index of Alexey Evlampiev's writing on PostgreSQL, data architecture, deployment engineering, and AI systems."
 ---
 
 Everything I've published, in one place. Posts on this site appear in the

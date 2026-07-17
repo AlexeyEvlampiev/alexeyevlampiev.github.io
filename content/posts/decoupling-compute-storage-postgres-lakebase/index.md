@@ -8,7 +8,8 @@ cover:
   image: lakebase-ecosystem-integration-flow.png
   alt: "Databricks Lakebase ecosystem integration: bidirectional data flow between PostgreSQL, Unity Catalog, and Delta Lake"
   relative: true
-  hidden: true
+  hiddenInList: false
+  hiddenInSingle: true
 ShowToc: true
 TocOpen: false
 ---
@@ -106,7 +107,7 @@ But branching does not solve the deployment orchestration problem — it replica
 
 The deeper question is architectural. If compute is ephemeral and session state is transient, where should deployment logic live?
 
-External migration tools maintain their own state — tracking tables, lock mechanisms, changelog parsing — in the external binary or in the database itself. When the external binary crashes, the tracking state and the database state can diverge (the problem described in detail in the mid-flight failure analysis that continues to plague every major migration framework). When the database's compute layer recycles, session-scoped coordination mechanisms disappear.
+External migration tools maintain their own state — tracking tables, lock mechanisms, changelog parsing — in the external binary or in the database itself. When the external binary crashes, the tracking state and the database state can diverge — a failure mode explored in [Why We Are Still Getting Database Deployments Wrong](/posts/database-deployments-wrong-2026/). When the database's compute layer recycles, session-scoped coordination mechanisms disappear.
 
 The one thing that survives across all ephemeral compute events — across scale-to-zero, across branch creation, across compute recycling — is the data in the durable storage layer. The schema. The tables. The indexes. The functions. Everything that PostgreSQL persists through WAL.
 

@@ -7,6 +7,14 @@ pagination:
   pagerSize: 10
 
 buildFuture: true
+enableGitInfo: true
+
+frontmatter:
+  lastmod:
+    - :git
+    - lastmod
+    - date
+    - publishDate
 
 taxonomies:
   tag: tags
@@ -18,6 +26,7 @@ params:
   keywords: ["PostgreSQL", "Data Architecture", "Database Architecture", "Software Architecture", "AI Agents", "Serverless", "Databricks", "DevOps"]
   env: production
   defaultTheme: auto
+  mainSections: ["posts"]
   ShowReadingTime: true
   ShowShareButtons: true
   ShowPostNavLinks: true
@@ -27,12 +36,18 @@ params:
   TocOpen: false
 
   homeInfoParams:
-    Title: "Alexey Evlampiev"
+    Eyebrow: "Systems · Data · AI"
+    Title: "Architecture for systems that have to remember correctly."
     Content: >-
-      Data Platform Architect · Amsterdam.
-      Writing about data platforms and PostgreSQL, the architecture of
-      systems that share knowledge instead of reconstructing it over APIs,
-      and where AI agents fit inside deterministic boundaries.
+      I'm Alexey Evlampiev, a Data Platform Architect in Amsterdam. I write
+      field notes and essays about PostgreSQL, data platforms, and putting
+      AI agents inside deterministic system boundaries.
+    PrimaryAction:
+      label: "Explore the essays"
+      url: "/posts/"
+    SecondaryAction:
+      label: "About my work"
+      url: "/about/"
 
   socialIcons:
     - name: github
@@ -48,9 +63,24 @@ params:
     favicon32x32: "/favicon-32x32.png"
     apple_touch_icon: "/apple-touch-icon.png"
 
+  schema:
+    publisherType: Person
+    authorUrl: "https://alexeyevlampiev.github.io/about/"
+    sameAs:
+      - "https://github.com/AlexeyEvlampiev"
+      - "https://www.linkedin.com/in/alexey-evlampiev-09572921/"
+
   cover:
-    hiddenInList: true
+    hiddenInList: false
     hiddenInSingle: true
+    responsiveImages: true
+
+outputFormats:
+  LLMS:
+    mediaType: text/plain
+    baseName: llms
+    isPlainText: true
+    notAlternative: true
 
 markup:
   highlight:
@@ -65,30 +95,23 @@ outputs:
     - HTML
     - RSS
     - JSON
+    - LLMS
 
 menu:
   main:
     - identifier: posts
-      name: Posts
+      name: Articles
       url: /posts/
       weight: 10
-    - identifier: archives
-      name: Archives
-      url: /archives/
-      weight: 15
     - identifier: tags
-      name: Tags
+      name: Topics
       url: /tags/
       weight: 20
-    - identifier: search
-      name: Search
-      url: /search/
-      weight: 25
-    - identifier: writing
-      name: Writing
-      url: /writing/
-      weight: 27
     - identifier: about
       name: About
       url: /about/
       weight: 30
+    - identifier: search
+      name: Search
+      url: /search/
+      weight: 40

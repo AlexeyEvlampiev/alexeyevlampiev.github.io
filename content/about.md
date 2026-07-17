@@ -1,6 +1,7 @@
 ---
 title: "About"
 layout: "single"
+description: "About Alexey Evlampiev, an Amsterdam-based data platform architect working on PostgreSQL, lakehouse architecture, and deterministic AI systems."
 ShowToc: false
 ShowBreadCrumbs: false
 ---
