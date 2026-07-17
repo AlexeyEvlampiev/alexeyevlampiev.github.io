@@ -1,7 +1,7 @@
 ---
 title: "Freshness Isn't the Only Axis: APIs, Projections, and Federated Queries"
 date: 2026-07-17
-draft: true
+draft: false
 tags: ["Data Architecture", "Software Architecture", "Data Mesh", "Event-Driven Architecture", "Microservices", "API Design"]
 summary: "An API can be fresher and still be the wrong integration. Compare calls, projections, and federated queries across eight dimensions of evaluation — from temporal coherence and semantics to authority and recoverability."
 cover:
@@ -12,25 +12,6 @@ cover:
 ShowToc: true
 TocOpen: false
 ---
-
-<!-- STATUS: draft R7 (2026-07-17) — pair-cohesion round (both essays reviewed
-     together): frontier claim SOFTENED + carefully scoped (seal covers the
-     originally observed stream; corrections = new record-time facts; Timely
-     cite kept, formalism compressed ~40%); neutrality check added after the
-     worked table (API wins the invariant check, federation wins the quarterly
-     investigation — the decision selected the projection, not a preference
-     for copies); novelty claim softened ("dimension I most often find
-     absent"; "nothing above depends on being first"); change-feed limiting
-     sentence added (CDC/CDF = delivery + ordering, not coherence/history/
-     semantics/admissibility); PACELC + evaluation trimmed; terminology
-     standardized: eight DIMENSIONS of evaluation, each holding a
-     decision-specific requirement (summary updated; essay-1 tease matches).
-     PROMO (channel kit): social headline — "The API gives us current truth."
-     That is not enough. — then the unit-of-design thesis.
-     NOTE: if both essays publish together, the R6 "essay-1-reception
-     revision round" gate is superseded by this joint round — user's call.
-     TODO at publication: final date + draft: false; series taxonomy after
-     AGP-7; Trino pushdown re-check; /writing/ index + reciprocal links. -->
 
 Every architecture review of a data integration reaches the same moment.
 Someone proposes keeping a local copy of another domain's data, and someone
