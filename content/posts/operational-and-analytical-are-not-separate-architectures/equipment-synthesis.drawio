@@ -1,0 +1,37 @@
+<mxGraphModel adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="capTop" value="FOUR DOMAINS, EACH AUTHORITATIVE FOR WHAT IT OBSERVES" style="text;html=1;fontSize=13;fontStyle=1;fontColor=#7a5a14;align=center;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="40" y="20" width="960" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="d1" value="&lt;font style=&quot;font-size:15px&quot;&gt;&lt;b&gt;Telemetry&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;temperature, vibration,&lt;br&gt;pressure, device health&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdf1dc;strokeColor=#c79433;strokeWidth=2.5;fontColor=#7a5a14;arcSize=14;" vertex="1" parent="1">
+      <mxGeometry x="40" y="56" width="210" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="d2" value="&lt;font style=&quot;font-size:15px&quot;&gt;&lt;b&gt;Asset registry&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;configuration,&lt;br&gt;installation history&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdf1dc;strokeColor=#c79433;strokeWidth=2.5;fontColor=#7a5a14;arcSize=14;" vertex="1" parent="1">
+      <mxGeometry x="290" y="56" width="210" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="d3" value="&lt;font style=&quot;font-size:15px&quot;&gt;&lt;b&gt;Maintenance&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;inspections, repairs,&lt;br&gt;technician findings&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdf1dc;strokeColor=#c79433;strokeWidth=2.5;fontColor=#7a5a14;arcSize=14;" vertex="1" parent="1">
+      <mxGeometry x="540" y="56" width="210" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="d4" value="&lt;font style=&quot;font-size:15px&quot;&gt;&lt;b&gt;Operations&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;workload, schedule,&lt;br&gt;operating conditions&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdf1dc;strokeColor=#c79433;strokeWidth=2.5;fontColor=#7a5a14;arcSize=14;" vertex="1" parent="1">
+      <mxGeometry x="790" y="56" width="210" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="substrate" value="&lt;font style=&quot;font-size:16px&quot;&gt;&lt;b&gt;Shared substrate&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:13px&quot;&gt;align identities, resolve time, fuse observations, learn expected behavior&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6f2ec;strokeColor=#2c5c50;strokeWidth=3;fontColor=#1f3a4d;arcSize=8;" vertex="1" parent="1">
+      <mxGeometry x="40" y="216" width="960" height="78" as="geometry"/>
+    </mxCell>
+    <mxCell id="products" value="&lt;font style=&quot;font-size:15px&quot;&gt;&lt;b&gt;Synthesized products&amp;#8202;&amp;#8202;&amp;#183;&amp;#8202;&amp;#8202;owned by no single domain&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size:13px&quot;&gt;per-asset history&amp;nbsp;&amp;#183;&amp;nbsp;fleet baselines&amp;nbsp;&amp;#183;&amp;nbsp;deviation features&amp;nbsp;&amp;#183;&lt;br&gt;anomaly model (sensor vs equipment fault)&amp;nbsp;&amp;#183;&amp;nbsp;calibrated failure risk&amp;nbsp;&amp;#183;&amp;nbsp;inspection priority&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6f2ec;strokeColor=#3f7e6e;strokeWidth=3;fontColor=#2c5c50;arcSize=10;" vertex="1" parent="1">
+      <mxGeometry x="150" y="374" width="740" height="110" as="geometry"/>
+    </mxCell>
+    <mxCell id="a1" style="endArrow=block;html=1;edgeStyle=none;strokeColor=#c79433;strokeWidth=2.5;exitX=0.5;exitY=1;entryX=0.15;entryY=0;" edge="1" parent="1" source="d1" target="substrate"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="a2" style="endArrow=block;html=1;edgeStyle=none;strokeColor=#c79433;strokeWidth=2.5;exitX=0.5;exitY=1;entryX=0.38;entryY=0;" edge="1" parent="1" source="d2" target="substrate"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="a3" style="endArrow=block;html=1;edgeStyle=none;strokeColor=#c79433;strokeWidth=2.5;exitX=0.5;exitY=1;entryX=0.62;entryY=0;" edge="1" parent="1" source="d3" target="substrate"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="a4" style="endArrow=block;html=1;edgeStyle=none;strokeColor=#c79433;strokeWidth=2.5;exitX=0.5;exitY=1;entryX=0.85;entryY=0;" edge="1" parent="1" source="d4" target="substrate"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="a5" value="&lt;font style=&quot;font-size:12px&quot;&gt;&lt;i&gt;synthesize&lt;/i&gt;&lt;/font&gt;" style="endArrow=block;html=1;edgeStyle=none;strokeColor=#3f7e6e;strokeWidth=3;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontColor=#2c5c50;" edge="1" parent="1" source="substrate" target="products"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="ret" value="&lt;font style=&quot;font-size:12px&quot;&gt;&lt;i&gt;products return to the&lt;br&gt;boundaries; outcomes&lt;br&gt;are observed again&lt;/i&gt;&lt;/font&gt;" style="endArrow=block;html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#6b7d8a;strokeWidth=2.5;fontColor=#465561;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0.7;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="products" target="d4">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points"><mxPoint x="1055" y="418"/><mxPoint x="1055" y="34"/></Array>
+      </mxGeometry>
+    </mxCell>
+  </root>
+</mxGraphModel>

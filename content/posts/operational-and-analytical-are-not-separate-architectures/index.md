@@ -232,6 +232,11 @@ statistical derivative of millions of earlier observations. The decision — nor
 variation, failing sensor, or emerging mechanical fault — exists only at the
 intersection.
 
+![The local intersection: current operational reality and inherited knowledge shown as two overlapping fields, with the decision living only in the region where both can be computed together](local-intersection.drawio.svg)
+
+*Figure 2. The decision exists only in the intersection — where current
+operational reality and inherited knowledge can be computed together.*
+
 This is why locality matters. The relevant knowledge must be computable inside
 the decision boundary, or sufficiently close to it, when the application needs
 flexible joins, aggregation, retrieval, or inference. "Local" does not require
@@ -357,6 +362,12 @@ The result is not merely an analytical table. The substrate may produce:
 - an anomaly model that separates likely sensor faults from equipment faults;
 - a failure-risk model with calibrated confidence;
 - a recommended inspection priority.
+
+![Four domains — telemetry, asset registry, maintenance, and operations — each publish what they observe into a shared substrate, which synthesizes products owned by no single domain and returns them to the boundaries that act](equipment-synthesis.drawio.svg)
+
+*Figure 3. No single application owns equipment failure risk. It emerges only
+when the domains' observations are aligned and computed together, then returns to
+the boundaries that act.*
 
 These products return to different operational boundaries. The telemetry
 application receives an anomaly baseline. The maintenance application receives
