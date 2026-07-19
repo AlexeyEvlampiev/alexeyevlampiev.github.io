@@ -1,0 +1,30 @@
+<mxGraphModel adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="leftBox" value="&lt;font style=&quot;font-size:15px&quot;&gt;&lt;b&gt;Unity Catalog&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:13px&quot;&gt;gold-layer tables&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6f2ec;strokeColor=#3f7e6e;strokeWidth=3;fontColor=#2c5c50;arcSize=12;" vertex="1" parent="1">
+      <mxGeometry x="30" y="215" width="150" height="110" as="geometry"/>
+    </mxCell>
+    <mxCell id="syncArrow" value="&lt;font style=&quot;font-size:12px&quot;&gt;&lt;b&gt;Synced Tables&lt;/b&gt;&lt;br&gt;&lt;/font&gt;&lt;font style=&quot;font-size:11px&quot;&gt;read-only replication&lt;/font&gt;" style="shape=singleArrow;html=1;fillColor=#6b7d8a;strokeColor=none;arrowWidth=0.62;arrowSize=0.28;fontColor=#ffffff;" vertex="1" parent="1">
+      <mxGeometry x="185" y="238" width="130" height="64" as="geometry"/>
+    </mxCell>
+    <mxCell id="shell" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#6b7d8a;strokeWidth=2;dashed=1;arcSize=6;" vertex="1" parent="1">
+      <mxGeometry x="320" y="40" width="300" height="410" as="geometry"/>
+    </mxCell>
+    <mxCell id="shellLabel" value="&lt;font style=&quot;font-size:13px&quot;&gt;&lt;b&gt;Unity Catalog governance&lt;/b&gt;&lt;br&gt;row filters &#183; column masking &#183; audit &#183; lineage&lt;/font&gt;" style="text;html=1;fontColor=#465561;align=center;verticalAlign=top;" vertex="1" parent="1">
+      <mxGeometry x="330" y="52" width="280" height="44" as="geometry"/>
+    </mxCell>
+    <mxCell id="lakebase" value="&lt;font style=&quot;font-size:17px&quot;&gt;&lt;b&gt;Databricks Lakebase&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:13px&quot;&gt;serverless PostgreSQL&lt;br&gt;the operational database&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fdf1dc;strokeColor=#c79433;strokeWidth=3;fontColor=#7a5a14;arcSize=12;" vertex="1" parent="1">
+      <mxGeometry x="345" y="190" width="250" height="160" as="geometry"/>
+    </mxCell>
+    <mxCell id="moonArrow" value="&lt;font style=&quot;font-size:12px&quot;&gt;&lt;b&gt;Moonlink CDC&lt;/b&gt;&lt;br&gt;&lt;/font&gt;&lt;font style=&quot;font-size:11px&quot;&gt;real-time, no ETL&lt;/font&gt;" style="shape=singleArrow;html=1;fillColor=#3f7e6e;strokeColor=none;arrowWidth=0.62;arrowSize=0.28;fontColor=#ffffff;" vertex="1" parent="1">
+      <mxGeometry x="625" y="238" width="130" height="64" as="geometry"/>
+    </mxCell>
+    <mxCell id="cloudAn" value="&lt;font style=&quot;font-size:14px&quot;&gt;&lt;b&gt;Analytical layer&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;Delta &amp;amp; Iceberg tables&lt;/font&gt;" style="shape=cloud;whiteSpace=wrap;html=1;fillColor=#e6f2ec;strokeColor=#3f7e6e;strokeWidth=2;fontColor=#2c5c50;" vertex="1" parent="1">
+      <mxGeometry x="760" y="190" width="200" height="160" as="geometry"/>
+    </mxCell>
+    <mxCell id="bottomCap" value="&lt;font style=&quot;font-size:13px&quot;&gt;&lt;i&gt;one set of access policies governs both sides&lt;/i&gt;&lt;/font&gt;" style="text;html=1;fontColor=#465561;align=center;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="30" y="468" width="930" height="26" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

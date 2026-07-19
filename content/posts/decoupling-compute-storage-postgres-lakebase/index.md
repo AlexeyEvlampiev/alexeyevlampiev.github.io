@@ -5,7 +5,7 @@ draft: false
 tags: ["PostgreSQL", "Databricks", "Serverless", "Database Architecture", "Cloud"]
 summary: "A vendor-neutral analysis of how Databricks Lakebase and the broader serverless PostgreSQL convergence fundamentally change what we can assume about database deployments."
 cover:
-  image: lakebase-ecosystem-integration-flow.png
+  image: lakebase-ecosystem-integration-flow.drawio.png
   alt: "Databricks Lakebase ecosystem integration: bidirectional data flow between PostgreSQL, Unity Catalog, and Delta Lake"
   relative: true
   hiddenInList: true
@@ -26,7 +26,7 @@ For anyone who deploys to PostgreSQL, this changes the rules.
 
 Lakebase is built on [Neon's open-source architecture](https://neon.com/docs/introduction/architecture-overview), which Databricks [acquired for approximately $1 billion](https://www.databricks.com/company/newsroom/press-releases/databricks-agrees-acquire-neon-help-developers-deliver-ai-systems) in May 2025. The core innovation is splitting PostgreSQL into two fully independent layers that communicate through a single interface: the Write-Ahead Log (WAL) stream.
 
-![Lakebase compute-storage separation architecture: stateless PostgreSQL compute streams WAL to a distributed storage layer of safekeepers, pageservers, and S3](lakebase-compute-storage-architecture.png)
+![Lakebase compute-storage separation architecture: stateless PostgreSQL compute streams WAL to a distributed storage layer of safekeepers, pageservers, and S3](lakebase-compute-storage-architecture.drawio.svg)
 
 **The compute layer** runs standard PostgreSQL — version 16 or 17, with [52 supported extensions](https://docs.databricks.com/aws/en/oltp/projects/compatibility) including pgvector, PostGIS, PL/pgSQL, and pg_stat_statements. From the perspective of a connected client, this is a PostgreSQL database. The wire protocol is standard. psql, pgAdmin, pgx, SQLAlchemy — every PostgreSQL tool works unmodified.
 
@@ -50,7 +50,7 @@ Unity Catalog governance — row-level filters, column masking, audit logging, a
 
 Synced Tables provide the reverse direction — Unity Catalog gold-layer tables replicated into Lakebase as read-only PostgreSQL tables, with configurable refresh modes from snapshot to continuous streaming.
 
-![Databricks Lakebase ecosystem integration: Synced Tables replicate gold-layer data into Lakebase, while Moonlink CDC streams changes out to Delta and Iceberg tables, all governed by Unity Catalog](lakebase-ecosystem-integration-flow.png)
+![Databricks Lakebase ecosystem integration: Synced Tables replicate gold-layer data into Lakebase, while Moonlink CDC streams changes out to Delta and Iceberg tables, all governed by Unity Catalog](lakebase-ecosystem-integration-flow.drawio.svg)
 
 ## Scale to Zero and the Death of Assumed State
 
