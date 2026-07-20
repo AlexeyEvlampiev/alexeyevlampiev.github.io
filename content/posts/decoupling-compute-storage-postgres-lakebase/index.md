@@ -16,9 +16,9 @@ TocOpen: false
 
 On February 3, 2026, Databricks announced the [general availability of Lakebase on AWS](https://www.databricks.com/blog/databricks-lakebase-generally-available) — a serverless PostgreSQL database built on Neon's compute-storage separation architecture, integrated with Unity Catalog governance and the Databricks analytics platform. Azure followed in beta. Thousands of companies are already running production workloads.
 
-This is not a minor product launch. Databricks — a company valued at $134 billion with a $5.4 billion revenue run rate — is making a structural bet that PostgreSQL is the operational counterpart to the lakehouse. Snowflake made a parallel move, [acquiring Crunchy Data for ~$250 million](https://www.cnbc.com/2025/06/02/snowflake-to-buy-crunchy-data-250-million.html). The two largest analytical platforms on earth are converging on the same conclusion: operational data belongs in PostgreSQL.
+This is not a minor product launch. Databricks — valued at $134 billion after its December 2025 Series L, with revenue [past a $5.4 billion annual run rate](https://www.databricks.com/company/newsroom/press-releases/databricks-grows-65-yoy-surpasses-5-4-billion-revenue-run-rate) in January 2026 — is making a structural bet that PostgreSQL is the operational counterpart to the lakehouse. Snowflake made a parallel move, [acquiring Crunchy Data for ~$250 million](https://www.cnbc.com/2025/06/02/snowflake-to-buy-crunchy-data-250-million.html). The two largest analytical platforms on earth are converging on the same conclusion: operational data belongs in PostgreSQL.
 
-The architectural implications of Lakebase extend far beyond the Databricks ecosystem. What Lakebase represents — and what it shares with Neon, Aurora Serverless, and AlloyDB — is a fundamental rethinking of what a PostgreSQL database *is*. Compute is no longer a server. It is a process that appears, executes, and disappears. Storage is no longer a local filesystem. It is a distributed, durable layer that outlives any single compute instance.
+The architectural implications of Lakebase extend far beyond the Databricks ecosystem. What Lakebase represents — and what it shares with Neon, Aurora Serverless, AlloyDB, and now Microsoft's Azure HorizonDB — is a fundamental rethinking of what a PostgreSQL database *is*. Compute is no longer a server. It is a process that appears, executes, and disappears. Storage is no longer a local filesystem. It is a distributed, durable layer that outlives any single compute instance.
 
 For anyone who deploys to PostgreSQL, this changes the rules.
 
@@ -28,7 +28,7 @@ Lakebase is built on [Neon's open-source architecture](https://neon.com/docs/int
 
 ![Lakebase compute-storage separation architecture: stateless PostgreSQL compute streams WAL to a distributed storage layer of safekeepers, pageservers, and S3](lakebase-compute-storage-architecture.drawio.svg)
 
-**The compute layer** runs standard PostgreSQL — version 16 or 17, with [52 supported extensions](https://docs.databricks.com/aws/en/oltp/projects/compatibility) including pgvector, PostGIS, PL/pgSQL, and pg_stat_statements. From the perspective of a connected client, this is a PostgreSQL database. The wire protocol is standard. psql, pgAdmin, pgx, SQLAlchemy — every PostgreSQL tool works unmodified.
+**The compute layer** runs standard PostgreSQL — version 16, 17, or 18, with [more than 50 supported extensions](https://docs.databricks.com/aws/en/oltp/projects/compatibility) including pgvector, PostGIS, PL/pgSQL, and pg_stat_statements. From the perspective of a connected client, this is a PostgreSQL database. The wire protocol is standard. psql, pgAdmin, pgx, SQLAlchemy — every PostgreSQL tool works unmodified.
 
 What changes is that this compute process owns no durable state. Instead of flushing WAL to a local filesystem, it streams WAL records over the network to the storage layer.
 
@@ -44,17 +44,17 @@ This architecture means the WAL stream is the interface between compute and stor
 
 **Lakebase adds three capabilities on top of Neon's foundation:**
 
-Unity Catalog governance — row-level filters, column masking, audit logging, and lineage tracking — applied to the operational database. This is significant because it means the same access policies that govern the lakehouse also govern the PostgreSQL layer.
+Unity Catalog registration brings the operational database under lakehouse governance: the Postgres database surfaces as a read-only catalog with audit logging and lineage tracking, and Unity Catalog policies — row-level filters, column masking — govern access to that data through Databricks query surfaces. One boundary worth knowing: direct Postgres connections are still governed by Postgres roles, not Unity Catalog. The two systems share one catalog and one audit trail; they are aligned, not merged.
 
-[Moonlink](https://www.databricks.com/blog/mooncake-labs-joins-databricks-accelerate-vision-lakebase), from the Mooncake Labs acquisition (October 2025), provides real-time CDC from Lakebase to Delta and Iceberg tables. Changes in the operational database automatically flow to the analytical layer without ETL pipelines.
+[Moonlink](https://www.databricks.com/blog/mooncake-labs-joins-databricks-accelerate-vision-lakebase), from the Mooncake Labs acquisition (October 2025), provides real-time CDC from Lakebase to Delta and Iceberg tables — productized as the Lakebase change data feed (in public preview as of mid-2026). Changes in the operational database flow to the analytical layer without ETL pipelines.
 
 Synced Tables provide the reverse direction — Unity Catalog gold-layer tables replicated into Lakebase as read-only PostgreSQL tables, with configurable refresh modes from snapshot to continuous streaming.
 
-![Databricks Lakebase ecosystem integration: Synced Tables replicate gold-layer data into Lakebase, while Moonlink CDC streams changes out to Delta and Iceberg tables, all governed by Unity Catalog](lakebase-ecosystem-integration-flow.drawio.svg)
+![Databricks Lakebase ecosystem integration: Synced Tables replicate gold-layer data into Lakebase, while Moonlink CDC streams changes out to Delta and Iceberg tables, with Unity Catalog governance spanning both sides](lakebase-ecosystem-integration-flow.drawio.svg)
 
 ## Scale to Zero and the Death of Assumed State
 
-Lakebase Autoscaling supports true [scale-to-zero](https://docs.databricks.com/aws/en/oltp/projects/scale-to-zero). After five minutes of inactivity (configurable down to 60 seconds), the compute layer suspends entirely. Reactivation takes a few hundred milliseconds. Data remains safely in object storage.
+Lakebase Autoscaling supports true [scale-to-zero](https://docs.databricks.com/aws/en/oltp/projects/scale-to-zero). After a configurable period of inactivity — anywhere from 60 seconds to 7 days; the default is 24 hours — the compute layer suspends entirely. Reactivation takes a few hundred milliseconds. Data remains safely in object storage.
 
 This is where the architectural implications become concrete. When compute suspends and reactivates, every form of session state is destroyed:
 
@@ -75,13 +75,14 @@ Lakebase is not an isolated product decision. It is [one instance of an industry
 
 | Platform | Compute Model | Storage Model | Scale to Zero | Cold Start |
 |:---------|:-------------|:-------------|:-------------|:----------|
-| **Lakebase** (Databricks) | Ephemeral Postgres (Neon) | Safekeepers + Pageserver + S3 | Yes (5 min idle) | ~500ms |
+| **Lakebase** (Databricks) | Ephemeral Postgres (Neon) | Safekeepers + Pageserver + S3 | Yes (60 s – 7 d idle, default 24 h) | ~500ms |
 | **Neon** (standalone) | Ephemeral Postgres | Same architecture (Neon origin) | Yes (5 min idle) | ~500ms |
-| **Aurora Serverless v2** (AWS) | ACU-based Postgres | Aurora distributed storage | Yes (5-24 min idle) | ~15-30s |
+| **Aurora Serverless v2** (AWS) | ACU-based Postgres | Aurora distributed storage | Yes (5 min – 24 h idle) | ~15-30s |
 | **AlloyDB** (Google Cloud) | Primary + read pool VMs | Log Storage + LPS + Block Storage | No | N/A |
+| **HorizonDB** (Microsoft Azure) | Scale-out Postgres (primary + replicas) | Shared durable WAL ("database-as-logs") | No | N/A |
 | **Aurora DSQL** (AWS) | Per-transaction Firecracker VMs | Distributed journal | Fully serverless | Per-transaction |
 
-Every major cloud provider is separating compute from storage at the WAL boundary. The differences are in how aggressively they pursue ephemerality. Neon and Lakebase are the most aggressive — sub-second cold starts, true scale-to-zero. Aurora Serverless is more conservative — heavier compute, longer cold starts. AlloyDB keeps compute always-on but disaggregates storage. [DSQL](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/working-with-postgresql-compatibility-migration-guide.html) takes it to the extreme — each transaction runs in its own Firecracker micro-VM with no session state at all.
+Every major cloud provider is separating compute from storage at the WAL boundary. The differences are in how aggressively they pursue ephemerality. Neon and Lakebase are the most aggressive — sub-second cold starts, true scale-to-zero. Aurora Serverless is more conservative — heavier compute, longer cold starts. AlloyDB keeps compute always-on but disaggregates storage. Microsoft joined the convergence with [Azure HorizonDB](https://learn.microsoft.com/en-us/azure/horizondb/overview) — unveiled at Ignite in late 2025 and in public preview since mid-2026 — a Postgres-compatible engine built on a "database-as-logs" architecture: a shared durable WAL layer feeds compute, and read replicas attach to the same storage without copying data. It does not scale to zero, but it separates compute from storage at exactly the same boundary. [DSQL](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/working-with-postgresql-compatibility-migration-guide.html) takes it to the extreme — each transaction runs in its own Firecracker micro-VM with no session state at all.
 
 The trajectory is clear. PostgreSQL compute is becoming ephemeral. The question is not *whether* your deployment targets will have ephemeral compute, but *when*.
 
@@ -91,7 +92,7 @@ Traditional database deployment tools were designed for a world where the databa
 
 Ephemeral compute invalidates all three assumptions.
 
-**The database may not be running when the pipeline connects.** A CI/CD runner that triggers a deployment against a Lakebase or Neon instance may face a 500ms wake-up delay. Against Aurora Serverless, 15-30 seconds. Many PostgreSQL driver libraries default to 5-10 second connection timeouts — shorter than Aurora's cold start. The migration tool fails before the database finishes waking up.
+**The database may not be running when the pipeline connects.** A CI/CD runner that triggers a deployment against a Lakebase or Neon instance may face a 500ms wake-up delay. Against Aurora Serverless, 15-30 seconds. Driver and pooler connection timeouts are commonly configured in the 5-10 second range — shorter than Aurora's cold start; AWS itself recommends raising client timeouts above 15 seconds for auto-paused clusters. The migration tool fails before the database finishes waking up.
 
 **Session state may not survive.** Migration tools that acquire advisory locks to prevent concurrent deployments (`SELECT pg_advisory_lock(...)`) rely on the lock persisting for the duration of the migration session. If the underlying connection is recycled by a pooler or interrupted by a compute scaling event, the lock disappears silently. Another deployment instance may proceed concurrently, corrupting state.
 
@@ -101,9 +102,9 @@ Ephemeral compute invalidates all three assumptions.
 
 ## The Deployment Question
 
-Lakebase itself provides some answers. Copy-on-write branching enables CI/CD patterns: create a branch, deploy schema changes, validate, merge back. Branches can have TTLs of 2-4 hours, automatically cleaning up after the CI pipeline completes. Synced Tables handle the analytical-to-operational data flow. Moonlink handles the reverse.
+Lakebase itself provides some answers. Copy-on-write branching enables CI/CD patterns: create a branch, deploy schema changes, validate, merge back. Branches can be given a TTL — from one hour up to 30 days — so a CI branch cleans itself up after the pipeline completes. Synced Tables handle the analytical-to-operational data flow. Moonlink handles the reverse.
 
-But branching does not solve the deployment orchestration problem — it replicates it. Each branch is a separate PostgreSQL endpoint that may or may not have active compute. The migration tool still needs to connect, manage state, and execute changes. With up to 10 branches per project, the deployment target is no longer a single database but a tree of ephemeral instances.
+But branching does not solve the deployment orchestration problem — it replicates it. Each branch is a separate PostgreSQL endpoint that may or may not have active compute. The migration tool still needs to connect, manage state, and execute changes. With up to 10 unarchived branches per project (500 in total), the deployment target is no longer a single database but a tree of ephemeral instances.
 
 The deeper question is architectural. If compute is ephemeral and session state is transient, where should deployment logic live?
 
