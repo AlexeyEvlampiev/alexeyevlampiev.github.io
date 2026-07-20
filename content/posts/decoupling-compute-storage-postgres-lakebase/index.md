@@ -53,22 +53,19 @@ Synced Tables provide the reverse direction — Unity Catalog gold-layer tables 
 
 ![Databricks Lakebase ecosystem integration: Synced Tables replicate gold-layer data into Lakebase, while the Lakebase change data feed streams changes out to Unity Catalog managed Delta tables in ~15-second batches, with Unity Catalog governance spanning both sides](lakebase-ecosystem-integration-flow.drawio.svg)
 
-## Scale to Zero and the Death of Assumed State
+## The Connection Lifecycle Becomes Explicit
 
-Lakebase Autoscaling supports true [scale-to-zero](https://docs.databricks.com/aws/en/oltp/projects/scale-to-zero). After a configurable period of inactivity — anywhere from 60 seconds to 7 days; the default is 24 hours — the compute layer suspends entirely. Reactivation takes a few hundred milliseconds. Data remains safely in object storage.
+Scale-to-zero is the headline feature, but the precise statement is narrower than "sessions vanish." Ordinary PostgreSQL has always dropped session-local state the moment a connection closes, and it has long had idle and transaction timeouts that can close one; managed databases have always had failovers and maintenance restarts. None of that is new. What deserves a deployment tool's attention is more specific: three operational constraints that were previously implicit or deployment-specific are now explicit product behavior.
 
-This is where the architectural implications become concrete. When compute suspends and reactivates, every form of session state is destroyed:
+**A cold endpoint delays the first connection.** After [scale-to-zero](https://docs.databricks.com/aws/en/oltp/projects/scale-to-zero) suspends an idle Lakebase instance — default 24 hours of inactivity, configurable from 60 seconds to 7 days — the next connection or query must wait for compute to resume. Resume is fast (~500ms on Lakebase and Neon; ~15 seconds on Aurora Serverless v2, longer after extended suspension) but not instant, and a CI job whose driver timeout is shorter than the cold start fails before the database is ready. This affects connection *establishment*: scale-to-zero occurs when there are no queries or connections, so it delays connecting — it does not interrupt a migration already in flight.
 
-- **Temporary tables**: gone.
-- **Prepared statements**: gone.
-- **Advisory locks**: gone — the connection that held them no longer exists.
-- **Session variables** (`SET` parameters): gone.
-- **In-memory statistics and buffer cache**: cold.
-- **Active transactions**: aborted.
+**Connections carry explicit lifetime bounds.** Lakebase [documents](https://docs.databricks.com/aws/en/oltp/projects/connect-overview) a 24-hour idle timeout and a three-day maximum connection lifetime. A deployment that assumes one connection can be held open indefinitely — a long backfill, or a lock held for the duration — now has an upper bound to design within. When the connection ends, session-local state ends with it, exactly as PostgreSQL has always behaved; what is new is only that Lakebase makes these connection limits explicit and mandatory.
 
-The data is safe. The schema is intact. But the *execution environment* — everything that existed in the compute process's memory — has been wiped.
+**Transaction pooling removes backend affinity by design.** Lakebase provides a built-in pooled connection endpoint (PgBouncer in transaction mode) alongside the direct one. Transaction-mode pooling returns the backend to the pool after every transaction, so session-local state deliberately does not carry between transactions — a `SET search_path`, a temporary table, or a SQL-level prepared statement (`PREPARE` / `EXECUTE`) created in one transaction is not visible in the next. (Databricks documents driver-level, protocol prepared-statement support separately; that is a different mechanism from SQL-level `PREPARE`.) This is the pooler working as specified, not a failure — and it is separate from suspension: an associated RDS Proxy keeps a connection open to an Aurora Serverless cluster, which prevents it from auto-pausing.
 
-This is not a Lakebase-specific limitation — but it is a consequence of *scale-to-zero*, which disaggregated storage enables but does not require. Neon (standalone) behaves identically — default suspension after five minutes of inactivity, ~500ms cold start. [Aurora Serverless v2](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2.how-it-works.html) exhibits the same pattern at a larger time scale: suspension after 5 minutes to 24 hours of inactivity, with cold start times of approximately 15 seconds (rising to 30+ seconds after extended suspension). Even [AlloyDB](https://docs.cloud.google.com/alloydb/docs/overview), which does not scale to zero, disaggregates storage in a way that makes read replicas share data without owning it.
+Two distinctions are worth holding onto, because they are easy to blur. *Autoscaling* changes how much compute a running instance has and does not drop live connections; *scale-to-zero* suspends an idle instance entirely — different mechanisms. And *session-local* state (temporary tables, prepared statements, session `SET` parameters, advisory locks, an open transaction) lives and dies with the connection, whereas *compute-local shared* state (the buffer cache, cumulative statistics) is merely cold after a resume and warms back on its own — a performance effect, not a correctness one.
+
+The practical rules for a deployment tool follow directly. When it needs session semantics — an advisory lock, a temporary table, a session GUC held across statements — it should take a **direct, unpooled connection**, not a transaction-mode pooler. It should set connection timeouts comfortably above the target's cold-start time. And it should treat any reconnect as a **new attempt** that revalidates durable state before proceeding, never as a resumption of the session it left behind.
 
 ## The Convergence
 
@@ -89,35 +86,21 @@ Every platform here separates compute from storage across a durability-log bound
 
 The trajectory on the first axis is clear: PostgreSQL compute is being separated from storage everywhere. Ephemerality is the *additional* property some of these platforms layer on top — and it is the one that changes what deployment tooling can assume.
 
-## What This Breaks
+### PostgreSQL Compatibility Is a Separate Axis
 
-Traditional database deployment tools were designed for a world where the database server is always running, a connection is available immediately, and session state persists for the duration of the migration.
-
-Three distinct events invalidate those assumptions, and it helps to keep them apart:
-
-- **Scale-to-zero** challenges *connection establishment*: a suspended database was already idle, so the hazard is the wake-up delay on the next connect — not the interruption of work in flight.
-- **Failover, maintenance restarts, network failure, and enforced connection lifetimes** can terminate an *established* session mid-deployment. (Lakebase, for instance, caps a connection at a three-day maximum lifetime and idles it out after 24 hours — the session is bounded even while you are using it.)
-- **Transaction pooling** removes backend-session *affinity* between transactions, so anything you set in one transaction is gone by the next.
-
-Note what is *not* on that list: ordinary autoscaling. Lakebase scales compute up and down without dropping live connections. Disaggregation is the enabler here, but the session-ending event is always one of the three above — not the mere fact that storage is separate.
-
-**The database may not be running when the pipeline connects.** A CI/CD runner that triggers a deployment against an idle, suspended Lakebase or Neon instance may face a 500ms wake-up delay. Against a paused Aurora Serverless cluster, 15-30 seconds. Driver and pooler connection timeouts are commonly configured in the 5-10 second range — shorter than Aurora's cold start; AWS itself recommends raising client timeouts above 15 seconds for auto-paused clusters. Set them too low and the migration tool gives up before the database finishes waking.
-
-**Session state may not survive.** Migration tools that acquire advisory locks to prevent concurrent deployments (`SELECT pg_advisory_lock(...)`) rely on the lock persisting for the duration of the migration session. If the connection is recycled by a pooler, or the session is ended by a failover or a hit connection-lifetime cap, the lock disappears silently. Another deployment instance may proceed concurrently, corrupting state.
-
-**Connection poolers break session assumptions — independently of scale-to-zero.** Neon includes built-in PgBouncer in transaction mode. Transaction-mode pooling returns the connection to the pool after each transaction, so `SET` parameters, temporary tables, and prepared statements do not persist between transactions. A migration tool that sets `search_path` once and creates temporary tracking state across several transactions will silently see it vanish. This is a pooling hazard, not a suspension one — and the two can even pull in opposite directions: an associated RDS Proxy keeps a connection open to Aurora Serverless, which *prevents* it from auto-pausing.
-
-**Feature availability varies wildly.** Aurora DSQL claims PostgreSQL compatibility but still lacks PL/pgSQL, temporary tables, triggers, and foreign keys (it has been closing gaps fast — [JSONB landed in June 2026](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/release-notes.html), so a compatibility list written six months ago is already stale). It limits transactions to 3,000 modified rows and one DDL statement each. A migration script that creates a table and inserts seed data in the same transaction will fail; any tool that generates `DO $$ ... $$` blocks is incompatible. The PostgreSQL on the other side of the wire is not always the PostgreSQL you expect — and the target list is moving, so pin your assumptions to today's docs, not last release's.
+One more axis cuts across both of the above: how completely a platform implements PostgreSQL. As of July 2026, Aurora DSQL is PostgreSQL-compatible but does not support PL/pgSQL, temporary tables, triggers, or foreign keys. Its transaction model also permits at most 3,000 mutated rows and one DDL statement per transaction, and it does not allow DDL and DML in the same transaction. A migration that creates a table and inserts seed data within one transaction will therefore fail, as will scripts that rely on `DO $$ ... $$` blocks. Compatibility is evolving quickly—native JSONB support arrived in June 2026—so deployment tooling should treat each platform as a versioned capability target and validate assumptions against current documentation.
 
 ## The Deployment Question
 
-Lakebase itself provides some answers. Copy-on-write branching enables CI/CD patterns: create a branch, deploy schema changes, validate, merge back. Branches can be given a TTL — from one hour up to 30 days — so a CI branch cleans itself up after the pipeline completes. Synced Tables handle the analytical-to-operational data flow. The Lakebase change data feed handles the reverse.
+Lakebase provides some of the primitives needed for lifecycle-safe deployment. Copy-on-write branching enables CI/CD patterns: create a branch, deploy schema changes, validate, merge back. Branches can be given a TTL — from one hour up to 30 days — so a CI branch cleans itself up after the pipeline completes. Synced Tables handle the analytical-to-operational data flow. The Lakebase change data feed handles the reverse.
 
 But branching does not solve the deployment orchestration problem — it replicates it. Each branch is a separate PostgreSQL endpoint that may or may not have active compute. The migration tool still needs to connect, manage state, and execute changes. With up to 10 unarchived branches per project (500 in total), the deployment target is no longer a single database but a tree of ephemeral instances.
 
 The deeper question is architectural. If the session can end mid-deployment, what may deployment logic safely depend on?
 
 The tempting answer — "put everything in one session so it's atomic" — is too strong, in two ways. First, a single session does *not* guarantee atomicity: the operations that matter most under load, `CREATE INDEX CONCURRENTLY` and `VACUUM`, cannot run inside a transaction block at all, so a real migration spans multiple commits by necessity. Second, durable coordination state is not the liability it is sometimes made out to be. A migration-history table lives in the same durable storage as your application tables; it survives scale-to-zero exactly as they do. The real hazard is narrower: partially completed non-transactional work (a half-built `CONCURRENTLY` index, a batch applied but not recorded) combined with too little durable progress information to tell what actually finished — so a crashed external binary and the database can end up disagreeing about where the deployment stopped ([a failure mode I explored separately](/posts/database-deployments-wrong-2026/)).
+
+Session-scoped coordination is the clearest correctness hazard. If a deployment loses its direct connection, PostgreSQL releases its advisory lock and rolls back any open transaction. That alone does not corrupt state. The risk appears when the attempt has already committed multi-transaction or nontransactional steps and another attempt begins before reconciling durable progress. After reconnecting, the tool must reacquire coordination and re-read durable state before continuing.
 
 What genuinely does not survive a suspend-and-resume is anything scoped to the *connection*: advisory locks, temporary tables, `SET` parameters, an open transaction. So the property to design for is narrower and more precise than "one session." Deployment tooling for these platforms should:
 
