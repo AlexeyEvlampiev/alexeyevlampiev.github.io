@@ -43,7 +43,7 @@
     <mxCell id="s3" value="&lt;font style=&quot;font-size:16px&quot;&gt;&lt;b&gt;Object storage (S3)&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;font-size:12px&quot;&gt;the source of truth &#183; base pages &amp;amp; history &#183; read only via the pageserver&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=13;fillColor=#e6f2ec;strokeColor=#3f7e6e;strokeWidth=3;fontColor=#2c5c50;" vertex="1" parent="1">
       <mxGeometry x="290" y="555" width="560" height="120" as="geometry"/>
     </mxCell>
-    <mxCell id="e_page_s3" value="" style="endArrow=block;html=1;edgeStyle=none;rounded=0;strokeColor=#3f7e6e;strokeWidth=5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.7946;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pageservers" target="s3">
+    <mxCell id="e_page_s3" value="&lt;font style=&quot;font-size:11px&quot;&gt;upload &#183; fetch on miss&lt;/font&gt;" style="endArrow=block;startArrow=block;html=1;edgeStyle=none;rounded=0;strokeColor=#3f7e6e;strokeWidth=5;fontColor=#2c5c50;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.7946;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pageservers" target="s3">
       <mxGeometry relative="1" as="geometry"/>
     </mxCell>
   </root>
