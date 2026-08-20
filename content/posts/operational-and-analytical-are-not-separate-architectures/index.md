@@ -562,6 +562,10 @@ and action produces the next observation.
 
 ---
 
+**The reference architecture built on this position** — publication and acceptance contracts, freshness as business semantics, governed transactions, and a runnable PostgreSQL proof — is developed in [*The Lakehouse Publishes. Applications Decide Locally.*](/posts/lakehouse-publishes-applications-decide-locally/)
+
+---
+
 **Sources and further reading**
 
 - Pat Helland, [*Data on the Outside versus Data on the Inside*](https://www.cidrdb.org/cidr2005/papers/P12.pdf) — CIDR 2005.
