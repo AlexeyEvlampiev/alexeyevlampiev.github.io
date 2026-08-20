@@ -83,6 +83,9 @@ outputFormats:
     notAlternative: true
 
 markup:
+  goldmark:
+    renderer:
+      unsafe: true
   highlight:
     anchorLineNos: false
     codeFences: true

@@ -207,6 +207,19 @@ body {
     border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
+.post-content .wide-figure {
+    position: relative;
+    left: 50%;
+    width: min(1800px, 94vw);
+    margin: 32px 0;
+    transform: translateX(-50%);
+    text-align: center;
+}
+
+.post-content .wide-figure img {
+    width: 100%;
+}
+
 @media (max-width: 700px) {
     .main {
         max-width: 100%;

@@ -1,0 +1,36 @@
+<mxfile host="Electron" type="device">
+  <diagram id="freshness-chain" name="freshness-chain">
+    <mxGraphModel dx="1200" dy="400" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1560" pageHeight="150" math="0" shadow="0" background="#fbfaf7">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="b1" value="source&lt;br&gt;change" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#5d665d;fontColor=#172018;fontSize=14;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="30" y="45" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="b2" value="mastered&lt;br&gt;publication" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#0f766e;fontColor=#172018;fontSize=14;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="250" y="45" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="b3" value="projection&lt;br&gt;delivery" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#0f766e;fontColor=#172018;fontSize=14;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="490" y="45" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="b4" value="validation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#0f766e;fontColor=#172018;fontSize=14;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="720" y="45" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="b5" value="acceptance" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#0f766e;fontColor=#172018;fontSize=14;arcSize=14;" vertex="1" parent="1">
+          <mxGeometry x="930" y="45" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="b6" value="&lt;b&gt;available on every&lt;br&gt;failover target&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d9f4e8;strokeColor=#0f766e;fontColor=#172018;fontSize=14;arcSize=14;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="1150" y="45" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" style="edgeStyle=none;html=1;strokeColor=#0f766e;endArrow=block;endFill=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="b1" target="b2"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="edgeStyle=none;html=1;strokeColor=#0f766e;endArrow=block;endFill=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="b2" target="b3"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="edgeStyle=none;html=1;strokeColor=#0f766e;endArrow=block;endFill=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="b3" target="b4"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" style="edgeStyle=none;html=1;strokeColor=#0f766e;endArrow=block;endFill=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="b4" target="b5"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e5" style="edgeStyle=none;html=1;strokeColor=#0f766e;endArrow=block;endFill=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="b5" target="b6"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="note" value="&lt;i&gt;the freshness SLO spans the whole chain — pipeline success alone proves none of it&lt;/i&gt;" style="text;html=1;align=center;fontSize=13;fontColor=#5d665d;" vertex="1" parent="1">
+          <mxGeometry x="280" y="118" width="1000" height="22" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
