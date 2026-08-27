@@ -707,3 +707,7 @@ Across an enterprise, those boundaries form a knowledge-exchange ecosystem rathe
 Master and publish. Project locally. Decide transactionally. Record the evidence.
 
 The lakehouse may master the knowledge. It must not own your uptime.
+
+---
+
+**Accepting context locally is how a decision gets the second of the two things it needs.** The first is authority over what it changes. The general rule, and what happens when either is missing, is stated in [*A Decision Belongs Where Its Authority Lives*](/locality-of-authority/).

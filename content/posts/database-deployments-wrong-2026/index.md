@@ -84,6 +84,8 @@ PostgreSQL has supported every capability required for this pattern since versio
 
 The same boundary becomes even more important when PostgreSQL compute is ephemeral. The companion essay, [Decoupling Compute and Storage in Postgres](/posts/decoupling-compute-storage-postgres-lakebase/), follows the argument into Lakebase, Neon, and other serverless PostgreSQL architectures.
 
+This is one instance of a general placement rule: a decision belongs where authority over the state it changes already lives. Here the state is the schema and the authority is the database's own transaction. The rule itself is stated in [*A Decision Belongs Where Its Authority Lives*](/locality-of-authority/).
+
 As deployment targets grow more ephemeral — serverless instances that scale to zero, compute that separates from storage, databases that serve autonomous workloads requiring strict transactional guarantees — the cost of managing state from outside the engine will only increase. The gap between what the external tool knows and what the database knows will only widen.
 
 The database already knows how to orchestrate itself. We have been getting in its way.

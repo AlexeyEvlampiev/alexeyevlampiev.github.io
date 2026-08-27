@@ -564,6 +564,8 @@ and action produces the next observation.
 
 **The reference architecture built on this position** — publication and acceptance contracts, freshness as business semantics, governed transactions, and a runnable PostgreSQL proof — is developed in [*The Lakehouse Publishes. Applications Decide Locally.*](/posts/lakehouse-publishes-applications-decide-locally/)
 
+**Knowledge returning to the point of action is a placement claim.** Its general form — a decision belongs where authority over the state it changes already lives, with the context it needs available locally — is stated in [*A Decision Belongs Where Its Authority Lives*](/locality-of-authority/).
+
 ---
 
 **Sources and further reading**

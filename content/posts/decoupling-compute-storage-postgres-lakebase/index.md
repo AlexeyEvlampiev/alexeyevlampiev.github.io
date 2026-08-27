@@ -111,3 +111,7 @@ What genuinely does not survive a suspend-and-resume is anything scoped to the *
 PostgreSQL supplies the raw materials for exactly this: transactional DDL for the steps that *can* be atomic, savepoints for nested isolation within a transaction, system catalogs for querying ground-truth state instead of trusting an external changelog, and durable tables for coordination that has to outlive a connection. All of it lives in the storage layer, so all of it survives the compute going away.
 
 As Data Platform Architects, we have spent years assuming the database is a persistent server holding a stable session. Two forces are pulling those apart. Disaggregation makes compute *replaceable* — it removes durable state from the compute node, nothing more. Managed compute and connection lifecycles then make the *connection* disposable: scale-to-zero, failover, and lifetime caps end sessions that used to last as long as you wanted. The data is as durable as ever; it is the connection that has become disposable. Deployment logic needs to know which is which.
+
+---
+
+**Disaggregation changes where authority can sit. It does not change the requirement that the decision sit with it.** That requirement is stated on its own in [*A Decision Belongs Where Its Authority Lives*](/locality-of-authority/).
