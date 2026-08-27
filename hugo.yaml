@@ -102,9 +102,13 @@ outputs:
 
 menu:
   main:
-    - identifier: posts
-      name: Articles
-      url: /posts/
+    - identifier: writing
+      name: Writing
+      url: /writing/
+      weight: 5
+    - identifier: authority
+      name: Locality of Authority
+      url: /locality-of-authority/
       weight: 10
     - identifier: tags
       name: Topics
