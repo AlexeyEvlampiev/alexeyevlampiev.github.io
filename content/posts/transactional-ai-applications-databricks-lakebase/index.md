@@ -207,7 +207,7 @@ Databricks resources are outside its rollback.
 ## 5. Working evidence
 
 The demo ran on Azure Databricks (westeurope) on 11 November 2026, built from an empty resource group with the deploy script of the demo
-repository, [lakebase-patch-desk](https://github.com/AlexeyEvlampiev/lakebase-patch-desk). The
+repository, [lakebase-patch-desk](https://github.com/AlexeyEvlampiev/lakebase-patch-desk/tree/v1.0). The
 Databricks App connects to Lakebase as the signed-in person: Databricks
 forwards the user's token, the app exchanges it for a short-lived database
 credential, and PostgreSQL authenticates the person's own login. The app's
@@ -264,7 +264,7 @@ direct-login capture above checks that boundary. Two further
 login-switching tests need a superuser and run only on local PostgreSQL.
 
 The full tests are in
-[`db/api/__test__/`](https://github.com/AlexeyEvlampiev/lakebase-patch-desk/tree/main/db/api/__test__).
+[`db/api/__test__/`](https://github.com/AlexeyEvlampiev/lakebase-patch-desk/tree/v1.0/db/api/__test__).
 
 **Delta receives the decision later.** After the approval committed, the
 export job merged the approved values into a Delta table, each product row
@@ -356,14 +356,14 @@ Databricks teams already know, and ready for future authenticated AI
 callers. In short: Spark analyzes, PostgreSQL runs the business, and both
 live in Databricks.
 
-The [demo repository](https://github.com/AlexeyEvlampiev/lakebase-patch-desk) holds the working system and the tests
+The [demo repository](https://github.com/AlexeyEvlampiev/lakebase-patch-desk/tree/v1.0) holds the working system and the tests
 behind these conclusions. With its [deploy
-guide](https://github.com/AlexeyEvlampiev/lakebase-patch-desk#deploy-the-demo) you can deploy the demo from an empty
+guide](https://github.com/AlexeyEvlampiev/lakebase-patch-desk/blob/v1.0/README.md#deploy-the-demo) you can deploy the demo from an empty
 resource group; the SQL tests run on every deploy.
 
 ## References
 
-- [lakebase-patch-desk: the demo repository](https://github.com/AlexeyEvlampiev/lakebase-patch-desk)
+- [lakebase-patch-desk: the demo repository](https://github.com/AlexeyEvlampiev/lakebase-patch-desk/tree/v1.0)
 - [pgmi: PostgreSQL deployments written in SQL](https://github.com/vvka-141/pgmi)
 
 - [What is Unity Catalog?](https://learn.microsoft.com/azure/databricks/data-governance/unity-catalog/)
@@ -382,6 +382,8 @@ resource group; the SQL tests run on every deploy.
 - [Decoupling Compute and Storage in Postgres: The Architectural Implications of Databricks Lakebase](/posts/decoupling-compute-storage-postgres-lakebase/): what Lakebase is; this article builds on it.
 - [Operational and Analytical Are Not Separate Architectures](/posts/operational-and-analytical-are-not-separate-architectures/)
 - [A Decision Belongs Where Its Authority Lives](/locality-of-authority/)
+
+*Drafted with AI assistance. The architecture, code, tests and conclusions are the author's own and were verified by the author.*
 
 *Alexey Evlampiev is a data and AI architect and Databricks Champion,
 working on enterprise data platforms, PostgreSQL and transactional
