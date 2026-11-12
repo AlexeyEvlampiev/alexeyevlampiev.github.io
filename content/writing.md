@@ -18,6 +18,11 @@ Most of it argues one thing from different directions:
 
 On this site. Browse the [archives](/archives/) for the full list.
 
+- [Beyond Analytics: Building Transactional AI Applications with Databricks and Lakebase](/posts/transactional-ai-applications-databricks-lakebase/)
+  — November 2026. A thin Databricks App calls named Lakebase PostgreSQL
+  operations as the signed-in person; PostgreSQL enforces the approval
+  rules, one bundle delivers the parts, and Delta receives approved results
+  later. Demonstrated with a working approval application.
 - [The Lakehouse Publishes. Applications Decide Locally.](/posts/lakehouse-publishes-applications-decide-locally/)
   — August 2026. A shared lakehouse masters and publishes governed context
   asynchronously; each application accepts the subset it needs into its own
