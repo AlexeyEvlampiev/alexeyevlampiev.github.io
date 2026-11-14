@@ -14,6 +14,8 @@ ShowToc: true
 TocOpen: false
 ---
 
+> **Update (14 Nov 2026):** [lakebase-patch-desk v1.1](https://github.com/AlexeyEvlampiev/lakebase-patch-desk/releases/tag/v1.1) runs the setup of roles and schemas in the same transaction as the SQL code and its tests, so a failing test rolls them back too; the grants from Databricks groups, the app and the jobs stay outside it. This article describes v1.0.
+
 *A SQL-first architecture for guarded business operations, repeatable
 Databricks delivery and a future path to authenticated AI agents,
 demonstrated with a working approval application.*
